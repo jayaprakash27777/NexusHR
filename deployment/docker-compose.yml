@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: nexushr-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nexushr
+      POSTGRES_USER: nexushr
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nexushr_secret_2025}
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexushr_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexushr -d nexushr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nexushr-network
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ..
+      dockerfile: deployment/backend.Dockerfile
+    container_name: nexushr-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/nexushr
+      SPRING_DATASOURCE_USERNAME: nexushr
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-nexushr_secret_2025}
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:-nexushr-super-secret-jwt-key-for-production-2025-must-change}
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - nexushr-network
+
+  # React Frontend (Nginx)
+  frontend:
+    build:
+      context: ..
+      dockerfile: deployment/frontend.Dockerfile
+    container_name: nexushr-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    networks:
+      - nexushr-network
+
+volumes:
+  nexushr_pgdata:
+    driver: local
+
+networks:
+  nexushr-network:
+    driver: bridge

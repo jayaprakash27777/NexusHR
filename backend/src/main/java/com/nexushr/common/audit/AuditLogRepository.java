@@ -1,0 +1,24 @@
+package com.nexushr.common.audit;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+@Repository
+public interface AuditLogRepository extends JpaRepository<AuditLog, Long>, JpaSpecificationExecutor<AuditLog> {
+
+    Page<AuditLog> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+
+    Page<AuditLog> findByUserIdAndActionOrderByCreatedAtDesc(UUID userId, String action, Pageable pageable);
+
+    Page<AuditLog> findByEntityTypeOrderByCreatedAtDesc(String entityType, Pageable pageable);
+
+    Page<AuditLog> findByActionOrderByCreatedAtDesc(String action, Pageable pageable);
+
+    Page<AuditLog> findAllByOrderByCreatedAtDesc(Pageable pageable);
+}

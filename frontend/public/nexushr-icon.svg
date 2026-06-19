@@ -1,0 +1,47 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Premium Dark Squircle Background -->
+  <rect x="32" y="32" width="448" height="448" rx="128" fill="#06060a"/>
+  
+  <!-- Subtle Gradient Border / Inner Glow -->
+  <rect x="32" y="32" width="448" height="448" rx="128" fill="url(#bg-gradient)" fill-opacity="0.2"/>
+  <rect x="34" y="34" width="444" height="444" rx="126" stroke="url(#border-gradient)" stroke-width="4" stroke-opacity="0.8"/>
+
+  <!-- The "N" Logo Mark -->
+  <!-- Left Pillar -->
+  <path d="M160 360V152" stroke="white" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Right Pillar -->
+  <path d="M352 360V152" stroke="white" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Diagonal -->
+  <path d="M160 152L352 360" stroke="url(#accent-gradient)" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Glows and Ambience -->
+  <circle cx="256" cy="256" r="160" fill="url(#accent-gradient)" filter="url(#glow)" opacity="0.15" />
+
+  <defs>
+    <!-- Background subtle gradient -->
+    <linearGradient id="bg-gradient" x1="32" y1="32" x2="480" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Border gradient for the glassmorphic rim light -->
+    <linearGradient id="border-gradient" x1="32" y1="32" x2="480" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.8"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Core Brand Gradient for the N -->
+    <linearGradient id="accent-gradient" x1="160" y1="152" x2="352" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366f1"/>
+      <stop offset="0.5" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+
+    <filter id="glow" x="0" y="0" width="512" height="512" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="40" result="effect1_foregroundBlur"/>
+    </filter>
+  </defs>
+</svg>

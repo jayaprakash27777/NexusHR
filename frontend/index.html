@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/nexushr-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NexusHR – AI-Enabled Enterprise HR & Workforce Intelligence Platform. Manage your workforce with next-generation analytics and insights." />
+    <meta name="theme-color" content="#0a0a0f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
+    <title>NexusHR – Workforce Intelligence Platform</title>
+  </head>
+  <body class="antialiased">
+    <div id="root"></div>
+    <script>
+      window.addEventListener('error', function(event) {
+        if (!document.getElementById('root').hasChildNodes()) {
+          document.getElementById('root').innerHTML = `
+            <div style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:#0a0a0f;color:#fff;font-family:system-ui,sans-serif;padding:20px;text-align:center;">
+              <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);padding:40px;border-radius:16px;max-width:500px;">
+                <h1 style="color:#ef4444;margin-top:0;">Critical Initialization Error</h1>
+                <p style="color:#9ca3af;font-size:14px;margin-bottom:20px;">The application failed to load due to a core module error.</p>
+                <div style="background:#000;padding:12px;border-radius:8px;text-align:left;font-family:monospace;font-size:12px;color:#ef4444;word-break:break-all;">
+                  ${event.message}
+                </div>
+                <button onclick="window.location.reload()" style="margin-top:24px;background:rgba(255,255,255,0.1);border:none;color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Reload Application</button>
+              </div>
+            </div>
+          `;
+        }
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

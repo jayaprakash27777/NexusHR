@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexushr-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nexushr
+      POSTGRES_USER: nexushr
+      POSTGRES_PASSWORD: nexushr_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexushr-postgres-data:/var/lib/postgresql/data
+    networks:
+      - nexushr-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexushr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexushr-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - nexushr-redis-data:/data
+    networks:
+      - nexushr-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: nexushr-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@nexushr.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nexushr-network
+
+volumes:
+  nexushr-postgres-data:
+    driver: local
+  nexushr-redis-data:
+    driver: local
+
+networks:
+  nexushr-network:
+    driver: bridge

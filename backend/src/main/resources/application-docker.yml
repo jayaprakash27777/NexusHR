@@ -1,0 +1,44 @@
+# Spring Boot Docker Profile
+spring:
+  profiles:
+    active: docker
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/nexushr}
+    username: ${SPRING_DATASOURCE_USERNAME:nexushr}
+    password: ${SPRING_DATASOURCE_PASSWORD:nexushr_secret_2025}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:nexushr-super-secret-jwt-key-for-production-2025}
+    expiration: 86400000
+  cors:
+    allowed-origins: http://localhost:3000,http://frontend:80
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.nexushr: INFO
+    org.springframework.web: WARN

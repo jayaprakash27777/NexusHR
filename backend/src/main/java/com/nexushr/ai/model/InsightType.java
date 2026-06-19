@@ -1,0 +1,12 @@
+package com.nexushr.ai.model;
+
+public enum InsightType {
+    ATTRITION_RISK,
+    PERFORMANCE_TREND,
+    SALARY_BENCHMARK,
+    WORKFORCE_SUMMARY,
+    DEPARTMENT_INSIGHT,
+    RECOMMENDATION,
+    ATTENDANCE_ALERT,
+    LEAVE_PATTERN
+}
