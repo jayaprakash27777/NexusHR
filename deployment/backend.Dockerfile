@@ -1,25 +1,20 @@
 # Build stage
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
-# Copy Maven wrapper and pom
-COPY backend/mvnw backend/mvnw
-COPY backend/.mvn backend/.mvn
+# Copy pom
 COPY backend/pom.xml backend/pom.xml
-
-# Make mvnw executable
-RUN chmod +x backend/mvnw
 
 # Download dependencies (cached layer)
 WORKDIR /app/backend
-RUN ./mvnw dependency:go-offline -B 2>/dev/null || true
+RUN mvn dependency:go-offline -B || true
 
 # Copy source code
 COPY backend/src src
 
 # Build the application
-RUN ./mvnw package -DskipTests -B
+RUN mvn package -DskipTests -B
 
 # Production stage
 FROM eclipse-temurin:21-jre-alpine AS runtime
