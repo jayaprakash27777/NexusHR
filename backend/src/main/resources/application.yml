@@ -41,11 +41,7 @@ spring:
   # Redis
   data:
     redis:
-      host: ${SPRING_REDIS_HOST:sharp-cricket-117243.upstash.io}
-      port: ${SPRING_REDIS_PORT:6379}
-      password: ${SPRING_REDIS_PASSWORD:gQAAAAAAAcn7AAIgcDIzMmYyNGZhZWJhNzk0OWY3OTQ4NDAwNWVhZWU3YjQzNw}
-      ssl:
-        enabled: ${SPRING_REDIS_SSL:true}
+      url: ${SPRING_REDIS_URL:rediss://default:gQAAAAAAAcn7AAIgcDIzMmYyNGZhZWJhNzk0OWY3OTQ4NDAwNWVhZWU3YjQzNw@sharp-cricket-117243.upstash.io:6379}
       timeout: 6000ms
 
   # Jackson
