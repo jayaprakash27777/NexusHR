@@ -33,8 +33,8 @@ public class EmbeddedInfrastructureConfig implements BeanFactoryPostProcessor, P
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         if (postgres != null) return;
         
-        if (System.getenv("SPRING_DATASOURCE_URL") != null) {
-            log.info("SPRING_DATASOURCE_URL is present. Skipping embedded infrastructure.");
+        if (System.getenv("RENDER") != null || "true".equals(System.getenv("RENDER"))) {
+            log.info("Running in Render environment. Skipping embedded infrastructure.");
             return;
         }
 
