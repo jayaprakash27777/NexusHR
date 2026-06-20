@@ -32,6 +32,11 @@ public class EmbeddedInfrastructureConfig implements BeanFactoryPostProcessor, P
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         if (postgres != null) return;
+        
+        if (System.getenv("SPRING_DATASOURCE_URL") != null) {
+            log.info("SPRING_DATASOURCE_URL is present. Skipping embedded infrastructure.");
+            return;
+        }
 
         log.info("Starting local fallback infrastructure (PostgreSQL & Redis)...");
 
