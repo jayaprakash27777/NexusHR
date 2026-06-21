@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store'
 import { authApi } from '@/api/auth'
 import { Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from 'lucide-react'
 
-const ParticleGlobe = lazy(() => import('@/components/3d/ParticleGlobe'))
+const NexusOrb = lazy(() => import('@/components/3d/NexusOrb'))
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -37,7 +37,7 @@ export default function LoginPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-nexus-950">
       {/* 3D Particle Globe Background */}
       <Suspense fallback={null}>
-        <ParticleGlobe />
+        <NexusOrb color="#6366f1" particleCount={150} />
       </Suspense>
 
       {/* Animated background */}

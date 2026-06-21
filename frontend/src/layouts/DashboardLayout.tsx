@@ -1,8 +1,9 @@
 import { Suspense, lazy } from 'react'
-import { Outlet } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { useLocation, Outlet } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/store'
 import Sidebar from '@/components/layout/Sidebar'
+import Topbar from '@/components/layout/Topbar'
 import AiCopilot from '@/components/ai/AiCopilot'
 import ChatSidebar from '@/components/realtime/ChatSidebar'
 import NoiseFilter from '@/components/ui/NoiseFilter'
@@ -11,6 +12,7 @@ const AmbientScene = lazy(() => import('@/components/3d/AmbientScene'))
 
 export default function DashboardLayout() {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed)
+  const location = useLocation()
 
   return (
     <div className="flex min-h-screen bg-nexus-950">
@@ -27,11 +29,13 @@ export default function DashboardLayout() {
       </Suspense>
 
       <motion.main
-        className="flex-1 overflow-hidden"
+        className="flex-1 overflow-hidden flex flex-col"
         animate={{ marginLeft: sidebarCollapsed ? 96 : 284 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="h-full w-full py-4 pr-4">
+        <Topbar />
+        
+        <div className="flex-1 w-full p-4 overflow-hidden">
           <div className="relative h-full w-full rounded-[var(--radius-2xl)] border border-white/[0.05] bg-nexus-900 shadow-2xl overflow-y-auto">
             {/* Ambient gradient overlays inside the main view */}
             <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden rounded-[var(--radius-2xl)]">
@@ -41,7 +45,9 @@ export default function DashboardLayout() {
             </div>
 
             <div className="relative z-10 p-6 lg:p-8 min-h-full">
-              <Outlet />
+              <AnimatePresence mode="wait">
+                <Outlet key={location.pathname} />
+              </AnimatePresence>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion, useSpring, useTransform } from 'framer-motion'
+import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
@@ -30,13 +30,40 @@ export default function KPICard({
   const cardRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+
+  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 })
+  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 })
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['7deg', '-7deg'])
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-7deg', '7deg'])
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!cardRef.current) return
     const rect = cardRef.current.getBoundingClientRect()
+    
+    // For gradient
     setMousePos({
       x: ((e.clientX - rect.left) / rect.width) * 100,
       y: ((e.clientY - rect.top) / rect.height) * 100,
     })
+
+    // For 3D tilt
+    const width = rect.width
+    const height = rect.height
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const xPct = mouseX / width - 0.5
+    const yPct = mouseY / height - 0.5
+    x.set(xPct)
+    y.set(yPct)
+  }
+
+  const handleMouseLeave = () => {
+    setHovered(false)
+    x.set(0)
+    y.set(0)
   }
 
   return (
@@ -46,22 +73,23 @@ export default function KPICard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
       className={cn(
         'group relative overflow-hidden rounded-[var(--radius-xl)]',
         'glass p-6',
         'transition-all duration-500',
         'hover:border-white/[0.08] hover:bg-white/[0.03]',
-        'hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/60'
+        'hover:shadow-2xl hover:shadow-black/60'
       )}
-      style={
-        hovered
-          ? {
-              background: `radial-gradient(400px circle at ${mousePos.x}% ${mousePos.y}%, rgba(99,102,241,0.06), transparent 40%)`,
-            }
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+        background: hovered
+          ? `radial-gradient(400px circle at ${mousePos.x}% ${mousePos.y}%, rgba(99,102,241,0.06), transparent 40%)`
           : undefined
-      }
+      }}
     >
       {/* Gradient accent line */}
       <div className={cn('absolute top-0 left-0 right-0 h-[2px] opacity-60', gradient)} />
