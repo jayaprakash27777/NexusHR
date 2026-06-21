@@ -372,6 +372,49 @@ export default function EmployeesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <HasPermission category="EMPLOYEE" action="CREATE">
+            <button
+              onClick={async () => {
+                if (!confirm('This will generate and add 100 dummy employees to the backend. Proceed?')) return;
+                toast.success('Starting Generation', 'Fetching departments and generating 100 employees in the background...');
+                const firstNames = ['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer', 'Michael', 'Linda'];
+                const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis'];
+                
+                let deptIds: string[] = [];
+                try {
+                  const depts = await employeesApi.getDepartments();
+                  deptIds = depts.map(d => d.id);
+                } catch (e) {
+                  console.error('Failed to fetch departments for seeding');
+                }
+                
+                let success = 0;
+                for (let i = 0; i < 100; i++) {
+                  const f = firstNames[Math.floor(Math.random() * firstNames.length)];
+                  const l = lastNames[Math.floor(Math.random() * lastNames.length)];
+                  const deptId = deptIds.length > 0 ? deptIds[Math.floor(Math.random() * deptIds.length)] : undefined;
+                  
+                  try {
+                    await employeesApi.create({
+                      firstName: f,
+                      lastName: l,
+                      email: `${f.toLowerCase()}.${l.toLowerCase()}${Math.floor(Math.random() * 10000)}@nexushr.com`,
+                      designation: 'Software Engineer',
+                      departmentId: deptId as string,
+                      dateOfJoining: new Date().toISOString().split('T')[0],
+                      employmentType: 'FULL_TIME'
+                    } as any);
+                    success++;
+                  } catch (e) {}
+                }
+                toast.success('Generation Complete', `Successfully added ${success} employees.`);
+                queryClient.invalidateQueries({ queryKey: ['employees'] });
+              }}
+              className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-nexus-300 hover:bg-white/10 transition-colors"
+            >
+              Seed 100 Employees
+            </button>
+          </HasPermission>
           <button
             onClick={handleExport}
             className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-nexus-300 hover:bg-white/10 transition-colors"
