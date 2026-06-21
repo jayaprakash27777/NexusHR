@@ -13,7 +13,7 @@ import { employeesApi, type Employee, type CreateEmployeeRequest } from '@/api/e
 import { toast } from '@/store/toast'
 import {
   Users, Search, Plus, MoreHorizontal, Mail, Phone, Download,
-  ChevronLeft, ChevronRight, Loader2, X, AlertCircle
+  ChevronLeft, ChevronRight, Loader2, X, AlertCircle, Grid, List
 } from 'lucide-react'
 import HasPermission from '@/components/auth/HasPermission'
 
@@ -243,6 +243,7 @@ export default function EmployeesPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(0)
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
   const [showAddModal, setShowAddModal] = useState(false)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -356,7 +357,25 @@ export default function EmployeesPage() {
             onFilterChange={(f) => { setActiveFilters(f); setPage(0) }}
           />
         </div>
-        <SavedViews currentFilters={activeFilters} onApplyView={(f) => { setActiveFilters(f); setPage(0) }} />
+        <div className="flex items-center gap-3">
+          <SavedViews currentFilters={activeFilters} onApplyView={(f) => { setActiveFilters(f); setPage(0) }} />
+          <div className="hidden sm:flex items-center rounded-lg bg-black/20 p-1 border border-white/5">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white/10 text-white' : 'text-nexus-500 hover:text-nexus-300'}`}
+              aria-label="Table View"
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'text-nexus-500 hover:text-nexus-300'}`}
+              aria-label="Grid View"
+            >
+              <Grid className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
@@ -382,62 +401,142 @@ export default function EmployeesPage() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {employees.map((emp: Employee, i: number) => {
-              const isSelected = selectedIds.has(emp.id)
-              const initials = emp.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-              return (
-                <GlassCard
-                  key={emp.id}
-                  className={`p-5 group cursor-pointer transition-all duration-300 relative ${isSelected ? 'ring-2 ring-accent-indigo/50 bg-accent-indigo/5' : ''}`}
-                  delay={i * 0.03}
-                  glow="indigo"
-                  onClick={() => navigate(`/employees/${emp.id}`)}
-                >
-                  <div className="absolute top-4 right-4 z-10" onClick={(e) => e.stopPropagation()}>
-                    <input 
-                      type="checkbox" 
-                      className="h-4 w-4 rounded border-white/20 bg-black/20 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/20"
-                      checked={isSelected}
-                      onChange={() => toggleSelection(emp.id)}
-                    />
-                  </div>
-                  <div className="flex items-start justify-between mb-4 pr-6">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10">
-                        <div className={`absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-sm font-semibold text-nexus-200 ring-2 ring-white/[0.06] transition-opacity`}>
-                          {initials}
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {employees.map((emp: Employee, i: number) => {
+                const isSelected = selectedIds.has(emp.id)
+                const initials = emp.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                return (
+                  <GlassCard
+                    key={emp.id}
+                    className={`p-5 group cursor-pointer transition-all duration-300 relative ${isSelected ? 'ring-2 ring-accent-indigo/50 bg-accent-indigo/5' : ''}`}
+                    delay={i * 0.03}
+                    glow="indigo"
+                    onClick={() => navigate(`/employees/${emp.id}`)}
+                  >
+                    <div className="absolute top-4 right-4 z-10" onClick={(e) => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="h-4 w-4 rounded border-white/20 bg-black/20 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/20"
+                        checked={isSelected}
+                        onChange={() => toggleSelection(emp.id)}
+                      />
+                    </div>
+                    <div className="flex items-start justify-between mb-4 pr-6">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-10 w-10">
+                          <div className={`absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-sm font-semibold text-nexus-200 ring-2 ring-white/[0.06] transition-opacity`}>
+                            {initials}
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-nexus-100 group-hover:text-nexus-50 transition-colors">{emp.fullName}</h3>
+                          <p className="text-xs text-nexus-500">{emp.employeeId}</p>
                         </div>
                       </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-nexus-100 group-hover:text-nexus-50 transition-colors">{emp.fullName}</h3>
-                        <p className="text-xs text-nexus-500">{emp.employeeId}</p>
+                    </div>
+                    <div className="space-y-2 mb-4">
+                      <p className="text-xs text-nexus-300">{emp.designation}</p>
+                      <p className="text-xs text-nexus-500">{emp.departmentName}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${statusColors[emp.status] ?? 'bg-nexus-800 text-nexus-400 border-white/10'}`}>
+                        {emp.status.replace('_', ' ')}
+                      </span>
+                      <div className="flex gap-2">
+                        <a href={`mailto:${emp.email}`} className="text-nexus-600 hover:text-accent-indigo transition-colors" aria-label="Email" onClick={e => e.stopPropagation()}>
+                          <Mail className="h-3.5 w-3.5" />
+                        </a>
+                        {emp.phone && (
+                          <a href={`tel:${emp.phone}`} className="text-nexus-600 hover:text-accent-indigo transition-colors" aria-label="Phone" onClick={e => e.stopPropagation()}>
+                            <Phone className="h-3.5 w-3.5" />
+                          </a>
+                        )}
                       </div>
                     </div>
-                  </div>
-                  <div className="space-y-2 mb-4">
-                    <p className="text-xs text-nexus-300">{emp.designation}</p>
-                    <p className="text-xs text-nexus-500">{emp.departmentName}</p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${statusColors[emp.status] ?? 'bg-nexus-800 text-nexus-400 border-white/10'}`}>
-                      {emp.status.replace('_', ' ')}
-                    </span>
-                    <div className="flex gap-2">
-                      <a href={`mailto:${emp.email}`} className="text-nexus-600 hover:text-accent-indigo transition-colors" aria-label="Email" onClick={e => e.stopPropagation()}>
-                        <Mail className="h-3.5 w-3.5" />
-                      </a>
-                      {emp.phone && (
-                        <a href={`tel:${emp.phone}`} className="text-nexus-600 hover:text-accent-indigo transition-colors" aria-label="Phone" onClick={e => e.stopPropagation()}>
-                          <Phone className="h-3.5 w-3.5" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </GlassCard>
-              )
-            })}
-          </div>
+                  </GlassCard>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[var(--radius-xl)] border border-white/5 bg-nexus-900/40 backdrop-blur-xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-nexus-300">
+                  <thead className="bg-white/[0.02] text-xs uppercase text-nexus-400">
+                    <tr>
+                      <th className="px-4 py-3 w-12">
+                        <input 
+                          type="checkbox" 
+                          className="h-4 w-4 rounded border-white/20 bg-black/20 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/20"
+                          checked={selectedIds.size === employees.length && employees.length > 0}
+                          onChange={() => {
+                            if (selectedIds.size === employees.length) {
+                              setSelectedIds(new Set())
+                            } else {
+                              setSelectedIds(new Set(employees.map((e: Employee) => e.id)))
+                            }
+                          }}
+                        />
+                      </th>
+                      <th className="px-4 py-3 font-semibold">Employee</th>
+                      <th className="px-4 py-3 font-semibold">Role</th>
+                      <th className="px-4 py-3 font-semibold">Department</th>
+                      <th className="px-4 py-3 font-semibold">Status</th>
+                      <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {employees.map((emp: Employee, i: number) => {
+                      const isSelected = selectedIds.has(emp.id)
+                      const initials = emp.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                      return (
+                        <motion.tr 
+                          key={emp.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.02 }}
+                          className={`hover:bg-white/[0.02] transition-colors cursor-pointer ${isSelected ? 'bg-accent-indigo/5' : ''}`}
+                          onClick={() => navigate(`/employees/${emp.id}`)}
+                        >
+                          <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                            <input 
+                              type="checkbox" 
+                              className="h-4 w-4 rounded border-white/20 bg-black/20 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/20"
+                              checked={isSelected}
+                              onChange={() => toggleSelection(emp.id)}
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-xs font-semibold text-nexus-200 ring-1 ring-white/[0.06]">
+                                {initials}
+                              </div>
+                              <div>
+                                <div className="font-medium text-nexus-100">{emp.fullName}</div>
+                                <div className="text-xs text-nexus-500">{emp.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-nexus-300">{emp.designation}</td>
+                          <td className="px-4 py-3 text-nexus-400">{emp.departmentName}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${statusColors[emp.status] ?? 'bg-nexus-800 text-nexus-400 border-white/10'}`}>
+                              {emp.status.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button className="text-nexus-500 hover:text-white transition-colors p-1" onClick={e => e.stopPropagation()}>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </motion.tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Pagination */}
           {(data?.totalPages ?? 0) > 1 && (

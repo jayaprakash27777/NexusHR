@@ -103,47 +103,56 @@ export default function AdminDashboard() {
         </p>
       </motion.div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Bento Box Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-min gap-6">
+        
+        {/* AI Insights Bar — Full Width Top */}
+        {insights && insights.length > 0 && (
+          <GlassCard className="col-span-1 md:col-span-12 p-6" glow="indigo" delay={0.05}>
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-lg)] bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 flex-shrink-0">
+                <Sparkles className="h-5 w-5 text-accent-indigo" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-nexus-100 mb-1">AI Workforce Insight</h3>
+                <p className="text-xs text-nexus-400 mt-0.5">
+                  {insights[0].description}
+                </p>
+                {insights.length > 1 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {insights.slice(1).map((insight) => (
+                      <span key={insight.id} className={`px-2 py-1 rounded text-[10px] font-bold border ${
+                        insight.priority === 'CRITICAL' ? 'bg-danger/10 text-danger border-danger/20' :
+                        insight.priority === 'HIGH' ? 'bg-warning/10 text-warning border-warning/20' :
+                        'bg-accent-indigo/10 text-accent-indigo border-accent-indigo/20'
+                      }`}>
+                        {insight.title}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <motion.button
+                className="flex-shrink-0 mt-4 sm:mt-0 rounded-[var(--radius-md)] border border-accent-indigo/30 bg-accent-indigo/10 px-4 py-2 text-xs font-medium text-accent-indigo transition-all hover:bg-accent-indigo/20"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                View All Insights
+              </motion.button>
+            </div>
+          </GlassCard>
+        )}
+
+        {/* KPIs — 3 cols each on large screens */}
+        <div className="col-span-1 md:col-span-3">
         <KPICard
           title="Total Employees"
-          value={kpis?.totalEmployees ?? 0}
-          previousValue={undefined}
-          icon={<Users className="h-5 w-5" />}
-          gradient="bg-gradient-to-r from-accent-indigo to-accent-violet"
-          delay={0.1}
         />
-        <KPICard
-          title="Present Today"
-          value={kpis?.presentToday ?? 0}
-          previousValue={undefined}
-          icon={<UserCheck className="h-5 w-5" />}
-          gradient="bg-gradient-to-r from-success to-accent-teal"
-          delay={0.15}
-        />
-        <KPICard
-          title="Pending Leaves"
-          value={kpis?.pendingLeaveRequests ?? 0}
-          previousValue={undefined}
-          icon={<CalendarDays className="h-5 w-5" />}
-          gradient="bg-gradient-to-r from-warning to-warning-light"
-          delay={0.2}
-        />
-        <KPICard
-          title="Monthly Payroll"
-          value={kpis?.currentMonthPayroll ?? 0}
-          previousValue={undefined}
-          format="currency"
-          icon={<Wallet className="h-5 w-5" />}
-          gradient="bg-gradient-to-r from-accent-blue to-accent-cyan"
-          delay={0.25}
-        />
-      </div>
+        </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Attendance Trend — from real monthly attendance aggregations */}
-        <GlassCard className="p-6 lg:col-span-2" delay={0.3}>
+        {/* Charts Row 1 */}
+        {/* Attendance Trend — 8 columns */}
+        <GlassCard className="col-span-1 md:col-span-8 p-6" delay={0.3}>
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-nexus-100">Attendance Overview</h3>
@@ -183,8 +192,8 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </GlassCard>
 
-        {/* Department Distribution — real employee counts from DB */}
-        <GlassCard className="p-6" delay={0.35}>
+        {/* Department Distribution — 4 columns */}
+        <GlassCard className="col-span-1 md:col-span-4 p-6" delay={0.35}>
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-nexus-100">Departments</h3>
             <p className="text-xs text-nexus-500 mt-0.5">Employee distribution</p>
@@ -220,12 +229,10 @@ export default function AdminDashboard() {
             ))}
           </div>
         </GlassCard>
-      </div>
 
-      {/* Second Row */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Payroll Trend — real monthly payroll totals */}
-        <GlassCard className="p-6 lg:col-span-2" delay={0.4}>
+        {/* Charts Row 2 */}
+        {/* Payroll Trend — 8 columns */}
+        <GlassCard className="col-span-1 md:col-span-8 p-6" delay={0.4}>
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-nexus-100">Payroll Trend</h3>
@@ -267,8 +274,8 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </GlassCard>
 
-        {/* Recent Activity — real DB audit log events */}
-        <GlassCard className="p-6" delay={0.45}>
+        {/* Recent Activity — 4 columns, spans 2 rows conceptually */}
+        <GlassCard className="col-span-1 md:col-span-4 p-6 row-span-2" delay={0.45}>
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-nexus-100">Recent Activity</h3>
           </div>
@@ -296,14 +303,12 @@ export default function AdminDashboard() {
             )}
           </div>
         </GlassCard>
-      </div>
 
-      {/* Third Row: Security */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        {/* Security / Devices Row */}
+        <div className="col-span-1 md:col-span-5 h-full">
           <DeviceActivityWidget />
         </div>
-        <GlassCard className="p-6 flex flex-col justify-center items-center text-center">
+        <GlassCard className="col-span-1 md:col-span-3 p-6 flex flex-col justify-center items-center text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
             <ShieldCheck className="h-8 w-8 text-success" />
           </div>
@@ -323,43 +328,6 @@ export default function AdminDashboard() {
           </div>
         </GlassCard>
       </div>
-
-      {/* AI Insights Bar — real insights from DB */}
-      {insights && insights.length > 0 && (
-        <GlassCard className="p-6" glow="indigo" delay={0.5}>
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-lg)] bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 flex-shrink-0">
-              <Sparkles className="h-5 w-5 text-accent-indigo" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-nexus-100 mb-1">AI Workforce Insight</h3>
-              <p className="text-xs text-nexus-400 mt-0.5">
-                {insights[0].description}
-              </p>
-              {insights.length > 1 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {insights.slice(1).map((insight) => (
-                    <span key={insight.id} className={`px-2 py-1 rounded text-[10px] font-bold border ${
-                      insight.priority === 'CRITICAL' ? 'bg-danger/10 text-danger border-danger/20' :
-                      insight.priority === 'HIGH' ? 'bg-warning/10 text-warning border-warning/20' :
-                      'bg-accent-indigo/10 text-accent-indigo border-accent-indigo/20'
-                    }`}>
-                      {insight.title}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <motion.button
-              className="flex-shrink-0 rounded-[var(--radius-md)] border border-accent-indigo/30 bg-accent-indigo/10 px-4 py-2 text-xs font-medium text-accent-indigo transition-all hover:bg-accent-indigo/20"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              View All Insights
-            </motion.button>
-          </div>
-        </GlassCard>
-      )}
     </PageTransition>
   )
 }

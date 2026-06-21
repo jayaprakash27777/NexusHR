@@ -27,6 +27,7 @@ const PerformancePage = lazy(() => import('./pages/performance/PerformancePage')
 const AiInsightsPage = lazy(() => import('./pages/ai/AiInsightsPage'))
 const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'))
 const FeatureFlagCenter = lazy(() => import('./pages/enterprise/features/FeatureFlagCenter'))
+const EnterpriseHub = lazy(() => import('./pages/enterprise/EnterpriseHub'))
 const TenantSettings = lazy(() => import('./pages/enterprise/admin/TenantSettings'))
 const SecurityCenter = lazy(() => import('./pages/settings/SecurityCenter'))
 const PermissionsManager = lazy(() => import('./pages/enterprise/security/PermissionsManager'))
@@ -104,6 +105,7 @@ export default function App() {
               <Route path="ai-insights" element={<AiInsightsPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               {/* Enterprise Routes */}
+              <Route path="enterprise" element={<EnterpriseHub />} />
               <Route path="features" element={<FeatureFlagCenter />} />
               <Route path="settings/tenant" element={<RequirePermission category="SETTINGS" action="UPDATE"><TenantSettings /></RequirePermission>} />
               <Route path="settings/security" element={<RequirePermission category="SECURITY" action="READ"><SecurityCenter /></RequirePermission>} />
