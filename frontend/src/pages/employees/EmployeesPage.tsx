@@ -136,14 +136,31 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Work Email *</label>
-            <input
-              required type="email" value={form.email || ''}
-              onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-              className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
-              placeholder="john.doe@company.com"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>Work Email *</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (form.firstName && form.lastName) {
+                      setForm(f => ({ ...f, email: `${form.firstName.toLowerCase()}.${form.lastName.toLowerCase()}@nexushr.com` }))
+                    } else {
+                      toast.error('Missing Names', 'Please enter first and last name to generate email.')
+                    }
+                  }}
+                  className="text-[10px] text-accent-indigo hover:text-indigo-400 transition-colors"
+                >
+                  Generate Email
+                </button>
+              </label>
+              <input
+                required type="email" value={form.email || ''}
+                onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                placeholder="john.doe@nexushr.com"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -210,6 +227,42 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
                 placeholder="1200000"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Gender</label>
+              <select
+                value={form.gender || ''}
+                onChange={(e) => setForm(f => ({ ...f, gender: e.target.value }))}
+                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Non-binary">Non-binary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Date of Birth</label>
+              <input
+                type="date" value={form.dateOfBirth || ''}
+                onChange={(e) => setForm(f => ({ ...f, dateOfBirth: e.target.value }))}
+                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Address</label>
+            <textarea
+              value={form.address || ''}
+              onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
+              rows={2}
+              className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none resize-none"
+              placeholder="Full Address"
+            />
           </div>
 
           {error && (
@@ -434,6 +487,20 @@ export default function EmployeesPage() {
                           <p className="text-xs text-nexus-500">{emp.employeeId}</p>
                         </div>
                       </div>
+                      <HasPermission category="EMPLOYEE" action="DELETE">
+                        <button 
+                          className="p-1.5 text-nexus-600 hover:text-danger hover:bg-danger/10 rounded-md transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Are you sure you want to remove ${emp.fullName}?`)) {
+                              deleteMutation.mutate(emp.id);
+                            }
+                          }}
+                          aria-label="Remove Employee"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </HasPermission>
                     </div>
                     <div className="space-y-2 mb-4">
                       <p className="text-xs text-nexus-300">{emp.designation}</p>
@@ -525,9 +592,20 @@ export default function EmployeesPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <button className="text-nexus-500 hover:text-white transition-colors p-1" onClick={e => e.stopPropagation()}>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </button>
+                            <HasPermission category="EMPLOYEE" action="DELETE">
+                              <button 
+                                className="text-nexus-500 hover:text-danger transition-colors p-1" 
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  if (confirm(`Are you sure you want to remove ${emp.fullName}?`)) {
+                                    deleteMutation.mutate(emp.id);
+                                  }
+                                }}
+                                aria-label="Remove Employee"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </HasPermission>
                           </td>
                         </motion.tr>
                       )
