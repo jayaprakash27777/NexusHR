@@ -67,8 +67,8 @@ export interface SubmitManagerReviewRequest {
 
 export const performanceApi = {
   getReviews: async (params: { page?: number; size?: number; status?: string; employeeId?: string } = {}): Promise<PagedResponse<PerformanceReview>> => {
-    const res = await apiClient.get<ApiResponse<PagedResponse<PerformanceReview>>>('/performance/reviews', { params })
-    return res.data.data
+    const res = await apiClient.get<PagedResponse<PerformanceReview>>('/performance/reviews', { params })
+    return res.data
   },
 
   getReview: async (id: string): Promise<PerformanceReview> => {

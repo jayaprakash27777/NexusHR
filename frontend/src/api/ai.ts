@@ -42,8 +42,8 @@ export interface WorkforceAnalytics {
 
 export const aiApi = {
   getInsights: async (limit: number = 5): Promise<AiInsight[]> => {
-    const res = await apiClient.get<ApiResponse<AiInsight[]>>(`/ai/insights?limit=${limit}`)
-    return res.data.data
+    const res = await apiClient.get<any>(`/ai/insights?limit=${limit}`)
+    return res.data.content
   },
 
   getWorkforceAnalytics: async (): Promise<WorkforceAnalytics> => {

@@ -88,8 +88,8 @@ export interface EmployeeQueryParams {
 
 export const employeesApi = {
   getAll: async (params: EmployeeQueryParams = {}): Promise<PagedResponse<Employee>> => {
-    const res = await apiClient.get<ApiResponse<PagedResponse<Employee>>>('/employees', { params })
-    return res.data.data
+    const res = await apiClient.get<PagedResponse<Employee>>('/employees', { params })
+    return res.data
   },
 
   getById: async (id: string): Promise<Employee> => {

@@ -29,8 +29,8 @@ export interface NotificationQueryParams {
 
 export const notificationsApi = {
   getAll: async (params: NotificationQueryParams = {}): Promise<PagedResponse<Notification>> => {
-    const res = await apiClient.get<ApiResponse<PagedResponse<Notification>>>('/notifications', { params })
-    return res.data.data
+    const res = await apiClient.get<PagedResponse<Notification>>('/notifications', { params })
+    return res.data
   },
 
   getUnreadCount: async (): Promise<number> => {
