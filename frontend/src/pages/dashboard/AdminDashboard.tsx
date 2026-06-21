@@ -167,29 +167,36 @@ export default function AdminDashboard() {
               </span>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={dashboard?.attendanceTrend ?? []}>
-              <defs>
-                <linearGradient id="attendanceGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="month" tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="rate"
-                stroke="#6366f1"
-                strokeWidth={2}
-                fill="url(#attendanceGradient)"
-                animationDuration={1500}
-                animationEasing="ease-out"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {dashboard?.attendanceTrend && dashboard.attendanceTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={dashboard.attendanceTrend}>
+                <defs>
+                  <linearGradient id="attendanceGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="rate"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  fill="url(#attendanceGradient)"
+                  animationDuration={1500}
+                  animationEasing="ease-out"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[240px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/5">
+              <Activity className="mb-2 h-8 w-8 text-nexus-600" />
+              <p className="text-sm font-medium text-nexus-400">No attendance data available</p>
+            </div>
+          )}
         </GlassCard>
 
         {/* Department Distribution — 4 columns */}
@@ -198,36 +205,45 @@ export default function AdminDashboard() {
             <h3 className="text-sm font-semibold text-nexus-100">Departments</h3>
             <p className="text-xs text-nexus-500 mt-0.5">Employee distribution</p>
           </div>
-          <div className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={deptData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={75}
-                  paddingAngle={3}
-                  dataKey="count"
-                  animationDuration={1200}
-                  animationEasing="ease-out"
-                >
-                  {deptData.map((entry, index) => (
-                    <Cell key={index} fill={entry.color} stroke="transparent" />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {deptData.map((dept) => (
-              <div key={dept.name} className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: dept.color }} />
-                <span className="text-[11px] text-nexus-400 truncate">{dept.name}</span>
-                <span className="ml-auto text-[11px] font-medium text-nexus-300">{dept.count}</span>
+          {deptData.length > 0 ? (
+            <>
+              <div className="flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={deptData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={3}
+                      dataKey="count"
+                      animationDuration={1200}
+                      animationEasing="ease-out"
+                    >
+                      {deptData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} stroke="transparent" />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {deptData.map((dept) => (
+                  <div key={dept.name} className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: dept.color }} />
+                    <span className="text-[11px] text-nexus-400 truncate">{dept.name}</span>
+                    <span className="ml-auto text-[11px] font-medium text-nexus-300">{dept.count}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="flex h-[200px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/5 mt-4">
+              <Users className="mb-2 h-8 w-8 text-nexus-600" />
+              <p className="text-sm font-medium text-nexus-400">No department data</p>
+            </div>
+          )}
         </GlassCard>
 
         {/* Charts Row 2 */}
@@ -251,27 +267,34 @@ export default function AdminDashboard() {
               ) : null
             })()}
           </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={dashboard?.payrollTrend ?? []} barSize={28}>
-              <defs>
-                <linearGradient id="payrollGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity={0.4} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="month" tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="amount"
-                fill="url(#payrollGradient)"
-                radius={[6, 6, 0, 0]}
-                animationDuration={1200}
-                animationEasing="ease-out"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {dashboard?.payrollTrend && dashboard.payrollTrend.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={dashboard.payrollTrend} barSize={28}>
+                <defs>
+                  <linearGradient id="payrollGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0.4} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6b6b8d', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar
+                  dataKey="amount"
+                  fill="url(#payrollGradient)"
+                  radius={[6, 6, 0, 0]}
+                  animationDuration={1200}
+                  animationEasing="ease-out"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[220px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/5">
+              <Wallet className="mb-2 h-8 w-8 text-nexus-600" />
+              <p className="text-sm font-medium text-nexus-400">No payroll data available</p>
+            </div>
+          )}
         </GlassCard>
 
         {/* Recent Activity — 4 columns, spans 2 rows conceptually */}
