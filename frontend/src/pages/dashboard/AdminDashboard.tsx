@@ -145,9 +145,42 @@ export default function AdminDashboard() {
 
         {/* KPIs — 3 cols each on large screens */}
         <div className="col-span-1 md:col-span-3">
-        <KPICard
-          title="Total Employees"
-        />
+          <KPICard
+            title="Total Employees"
+            value={kpis?.totalEmployees ?? 0}
+            previousValue={(kpis?.totalEmployees ?? 0) - (kpis?.newHiresThisMonth ?? 0)}
+            icon={<Users className="h-6 w-6" />}
+            gradient="bg-gradient-to-r from-accent-indigo to-accent-violet"
+            delay={0.1}
+          />
+        </div>
+        <div className="col-span-1 md:col-span-3">
+          <KPICard
+            title="New Hires"
+            value={kpis?.newHiresThisMonth ?? 0}
+            icon={<UserCheck className="h-6 w-6" />}
+            gradient="bg-gradient-to-r from-accent-cyan to-accent-blue"
+            delay={0.15}
+          />
+        </div>
+        <div className="col-span-1 md:col-span-3">
+          <KPICard
+            title="Avg Attendance"
+            value={dashboard?.attendanceTrend?.length ? `${(dashboard.attendanceTrend.reduce((a, b) => a + (b.rate || 0), 0) / dashboard.attendanceTrend.length).toFixed(1)}%` : '0%'}
+            icon={<CalendarDays className="h-6 w-6" />}
+            gradient="bg-gradient-to-r from-success to-emerald-400"
+            delay={0.2}
+          />
+        </div>
+        <div className="col-span-1 md:col-span-3">
+          <KPICard
+            title="Monthly Payroll"
+            value={dashboard?.payrollTrend?.length ? dashboard.payrollTrend[dashboard.payrollTrend.length - 1].amount : 0}
+            format="currency"
+            icon={<Wallet className="h-6 w-6" />}
+            gradient="bg-gradient-to-r from-warning to-amber-400"
+            delay={0.25}
+          />
         </div>
 
         {/* Charts Row 1 */}

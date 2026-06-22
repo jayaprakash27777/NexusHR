@@ -64,16 +64,16 @@ export default function AiCopilot() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-[var(--radius-2xl)] border border-white/10 bg-nexus-950/90 shadow-2xl backdrop-blur-2xl"
+          className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-[var(--radius-2xl)] border border-border/50 bg-background/90 shadow-2xl backdrop-blur-2xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-border/50 bg-foreground/5 px-4 py-3">
             <div className="flex items-center gap-2">
               <BrainCircuit className="h-5 w-5 text-accent-indigo" />
-              <span className="font-semibold text-nexus-50">AI Copilot</span>
+              <span className="font-semibold text-foreground">AI Copilot</span>
               <span className="rounded-full bg-accent-indigo/20 px-2 py-0.5 text-[9px] font-bold text-accent-indigo uppercase tracking-wider">Beta</span>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-nexus-400 hover:text-white transition-colors">
+            <button onClick={() => setIsOpen(false)} className="text-muted hover:text-foreground transition-colors">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -88,7 +88,7 @@ export default function AiCopilot() {
                 className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
-                  m.role === 'user' ? 'bg-white/10 text-white rounded-br-sm' : 'bg-accent-indigo/20 border border-accent-indigo/30 text-nexus-100 rounded-bl-sm'
+                  m.role === 'user' ? 'bg-foreground/10 text-foreground rounded-br-sm' : 'bg-accent-indigo/20 border border-accent-indigo/30 text-foreground rounded-bl-sm'
                 }`}>
                   <p>{m.text}</p>
                   
@@ -128,14 +128,14 @@ export default function AiCopilot() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-white/5">
+          <div className="p-4 border-t border-border/50">
             <form onSubmit={handleSend} className="relative flex items-center">
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask about your workforce..."
-                className="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-4 pr-12 text-sm text-nexus-100 placeholder-nexus-500 outline-none focus:border-accent-indigo/50 focus:bg-white/10"
+                className="w-full rounded-full border border-border/50 bg-foreground/5 py-2.5 pl-4 pr-12 text-sm text-foreground placeholder-muted outline-none focus:border-accent-indigo/50 focus:bg-foreground/10"
               />
               <button
                 type="submit"

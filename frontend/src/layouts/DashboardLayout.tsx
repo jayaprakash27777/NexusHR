@@ -15,7 +15,7 @@ export default function DashboardLayout() {
   const location = useLocation()
 
   return (
-    <div className="flex min-h-screen bg-nexus-950">
+    <div className="flex min-h-screen bg-background">
       <NoiseFilter />
       <Sidebar />
 
@@ -36,7 +36,7 @@ export default function DashboardLayout() {
         <Topbar />
         
         <div className="flex-1 w-full p-4 overflow-hidden">
-          <div className="relative h-full w-full rounded-[var(--radius-2xl)] border border-white/[0.05] bg-nexus-900 shadow-2xl overflow-y-auto">
+          <div className="relative h-full w-full rounded-[var(--radius-2xl)] border border-border bg-surface shadow-2xl overflow-y-auto">
             {/* Ambient gradient overlays inside the main view */}
             <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden rounded-[var(--radius-2xl)]">
               <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-accent-indigo/[0.02] blur-[120px]" />

@@ -8,6 +8,7 @@ import {
   Command, MessageSquare, MonitorPlay, Building2, Shield, Settings2, FileText, Workflow, GitMerge, UserSquare, Rocket, Map, BookOpen, GraduationCap, BrainCircuit, GitBranch, PieChart, Crown, Milestone
 } from 'lucide-react'
 import HasPermission from '@/components/auth/HasPermission'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
 const navItems = [
   { path: '/executive', label: 'Command Center', icon: MonitorPlay },
@@ -31,7 +32,7 @@ export default function Sidebar() {
     <motion.aside
       className={cn(
         'fixed left-4 top-4 bottom-4 z-40 flex flex-col overflow-hidden',
-        'rounded-[var(--radius-2xl)] border border-white/[0.05] bg-nexus-900/40',
+        'rounded-[var(--radius-2xl)] border border-border bg-surface/60',
         'backdrop-blur-3xl backdrop-saturate-[200%] shadow-2xl',
         'transition-all duration-500 ease-[var(--ease-out-expo)]'
       )}
@@ -39,7 +40,7 @@ export default function Sidebar() {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-white/[0.04] px-5">
+      <div className="flex h-16 items-center gap-3 border-b border-border/50 px-5">
         <div className="relative flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-gradient-to-br from-accent-indigo to-accent-violet shadow-lg shadow-accent-indigo/20">
           <span className="text-xs font-bold text-white">N</span>
           <div className="absolute inset-0 rounded-[var(--radius-md)] bg-gradient-to-br from-accent-indigo to-accent-violet opacity-50 blur-lg" />
@@ -52,8 +53,8 @@ export default function Sidebar() {
               exit={{ opacity: 0, x: -10 }}
               className="flex flex-col"
             >
-              <span className="text-sm font-semibold text-nexus-50 tracking-tight">NexusHR</span>
-              <span className="text-[10px] font-medium text-nexus-500 uppercase tracking-widest">Enterprise</span>
+              <span className="text-sm font-semibold text-foreground tracking-tight">NexusHR</span>
+              <span className="text-[10px] font-medium text-muted uppercase tracking-widest">Enterprise</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -76,8 +77,8 @@ export default function Sidebar() {
                   'relative flex items-center gap-3 rounded-[var(--radius-lg)] px-3 py-2.5',
                   'transition-all duration-200',
                   isActive
-                    ? 'text-white font-semibold'
-                    : 'text-nexus-400 hover:text-nexus-200 hover:bg-white/[0.02]'
+                    ? 'text-foreground font-semibold'
+                    : 'text-muted hover:text-foreground hover:bg-foreground/5'
                 )}
                 whileHover={{ x: 2 }}
                 whileTap={{ scale: 0.98 }}
@@ -86,7 +87,7 @@ export default function Sidebar() {
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute left-1 right-1 top-1 bottom-1 -z-10 rounded-[var(--radius-md)] bg-white/[0.06] shadow-sm border border-white/[0.02]"
+                    className="absolute left-1 right-1 top-1 bottom-1 -z-10 rounded-[var(--radius-md)] bg-foreground/10 shadow-sm border border-border/50"
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                   />
                 )}
@@ -157,11 +158,11 @@ export default function Sidebar() {
       </nav>
 
       {/* Quick Actions */}
-      <div className="border-t border-white/[0.04] p-3 space-y-2">
+      <div className="border-t border-border/50 p-3 space-y-2">
         {/* Chat toggle */}
         <button
           onClick={toggleChatSidebar}
-          className="flex w-full items-center justify-center lg:justify-start gap-2 rounded-[var(--radius-lg)] px-3 py-2 text-nexus-500 hover:bg-white/[0.03] hover:text-nexus-300 transition-colors"
+          className="flex w-full items-center justify-center lg:justify-start gap-2 rounded-[var(--radius-lg)] px-3 py-2 text-muted hover:bg-foreground/5 hover:text-foreground transition-colors"
           aria-label="Open team chat"
         >
           <MessageSquare className="h-4 w-4" />
@@ -202,9 +203,9 @@ export default function Sidebar() {
       </div>
 
       {/* User Profile */}
-      <div className="border-t border-white/[0.04] p-3">
-        <div className="flex items-center gap-3 rounded-[var(--radius-lg)] px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/30 to-accent-violet/30 text-xs font-semibold text-nexus-100">
+      <div className="border-t border-border/50 p-3">
+        <div className="flex items-center gap-2 rounded-[var(--radius-lg)] px-2 py-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/30 to-accent-violet/30 text-xs font-semibold text-foreground">
             {getInitials(user?.fullName || 'Admin User')}
           </div>
           <AnimatePresence>
@@ -215,19 +216,22 @@ export default function Sidebar() {
                 exit={{ opacity: 0 }}
                 className="flex-1 min-w-0"
               >
-                <p className="text-xs font-medium text-nexus-200 truncate">
+                <p className="text-xs font-medium text-foreground truncate">
                   {user?.fullName || 'Admin User'}
                 </p>
-                <p className="text-[10px] text-nexus-500 truncate">
+                <p className="text-[10px] text-muted truncate">
                   {user?.role || 'ADMIN'}
                 </p>
               </motion.div>
             )}
           </AnimatePresence>
           {!sidebarCollapsed && (
-            <button onClick={logout} className="text-nexus-500 hover:text-danger transition-colors" aria-label="Logout">
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <button onClick={logout} className="p-2 text-muted hover:text-danger hover:bg-foreground/5 rounded-lg transition-colors" aria-label="Logout">
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>

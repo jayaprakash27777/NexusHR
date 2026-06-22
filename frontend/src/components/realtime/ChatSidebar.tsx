@@ -173,13 +173,13 @@ export default function ChatSidebar() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0.5 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 right-0 top-0 z-50 flex w-full flex-col border-l border-white/10 bg-nexus-950/90 backdrop-blur-2xl sm:w-[400px]"
+            className="fixed bottom-0 right-0 top-0 z-50 flex w-full flex-col border-l border-border bg-background/90 backdrop-blur-2xl sm:w-[400px]"
           >
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-              <h2 className="text-lg font-semibold text-nexus-50 tracking-tight">Messages</h2>
+            <div className="flex items-center justify-between border-b border-border/50 px-5 py-4">
+              <h2 className="text-lg font-semibold text-foreground tracking-tight">Messages</h2>
               <button
                 onClick={toggleChatSidebar}
-                className="rounded-full p-1.5 text-nexus-400 transition-colors hover:bg-white/10 hover:text-nexus-100"
+                className="rounded-full p-1.5 text-muted transition-colors hover:bg-foreground/10 hover:text-foreground"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -197,13 +197,13 @@ export default function ChatSidebar() {
                   >
                     <div className="p-4 flex gap-2">
                       <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-nexus-500" />
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                         <input
                           type="text"
                           value={searchQuery}
                           onChange={handleSearchChange}
                           placeholder="Search conversations, files..."
-                          className="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-4 text-sm text-nexus-100 placeholder-nexus-500 outline-none transition-all focus:border-accent-indigo/50 focus:bg-white/10"
+                          className="w-full rounded-xl border border-border/50 bg-foreground/5 py-2 pl-9 pr-4 text-sm text-foreground placeholder-muted outline-none transition-all focus:border-accent-indigo/50 focus:bg-foreground/10"
                         />
                       </div>
                       <button 
@@ -221,15 +221,15 @@ export default function ChatSidebar() {
                           
                           {searchResults.users && searchResults.users.content.length > 0 && (
                             <div>
-                              <h4 className="text-[10px] font-bold text-nexus-500 uppercase tracking-wider mb-2">Users</h4>
+                              <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">Users</h4>
                               {searchResults.users.content.map(u => (
-                                <div key={u.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer">
-                                  <div className="w-8 h-8 rounded-full bg-accent-indigo/20 flex items-center justify-center text-xs text-nexus-100">
+                                <div key={u.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-foreground/5 cursor-pointer">
+                                  <div className="w-8 h-8 rounded-full bg-accent-indigo/20 flex items-center justify-center text-xs text-foreground">
                                     {u.fullName.substring(0, 2).toUpperCase()}
                                   </div>
                                   <div>
-                                    <div className="text-sm text-nexus-100">{u.fullName}</div>
-                                    <div className="text-xs text-nexus-400">{u.email}</div>
+                                    <div className="text-sm text-foreground">{u.fullName}</div>
+                                    <div className="text-xs text-muted">{u.email}</div>
                                   </div>
                                 </div>
                               ))}
@@ -238,13 +238,13 @@ export default function ChatSidebar() {
 
                           {searchResults.channels && searchResults.channels.content.length > 0 && (
                             <div>
-                              <h4 className="text-[10px] font-bold text-nexus-500 uppercase tracking-wider mb-2">Channels</h4>
+                              <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">Channels</h4>
                               {searchResults.channels.content.map(c => (
-                                <button key={c.id} onClick={() => setActiveChannel(c.id)} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 text-left">
-                                  <div className="w-8 h-8 rounded-full bg-accent-violet/20 flex items-center justify-center text-xs text-nexus-100">
+                                <button key={c.id} onClick={() => setActiveChannel(c.id)} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-foreground/5 text-left">
+                                  <div className="w-8 h-8 rounded-full bg-accent-violet/20 flex items-center justify-center text-xs text-foreground">
                                     #
                                   </div>
-                                  <div className="text-sm text-nexus-100">{c.name}</div>
+                                  <div className="text-sm text-foreground">{c.name}</div>
                                 </button>
                               ))}
                             </div>
@@ -252,13 +252,13 @@ export default function ChatSidebar() {
 
                           {searchResults.files && searchResults.files.content.length > 0 && (
                             <div>
-                              <h4 className="text-[10px] font-bold text-nexus-500 uppercase tracking-wider mb-2">Files</h4>
+                              <h4 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-2">Files</h4>
                               {searchResults.files.content.map(f => (
-                                <a key={f.id} href={`${API_BASE}${f.fileUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                                <a key={f.id} href={`${API_BASE}${f.fileUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-2 rounded-lg hover:bg-foreground/5">
                                   <FileText className="h-5 w-5 text-accent-indigo" />
                                   <div className="overflow-hidden flex-1">
-                                    <div className="text-sm text-nexus-100 truncate">{f.fileName}</div>
-                                    <div className="text-xs text-nexus-400">{(f.fileSize || 0) / 1024} KB</div>
+                                    <div className="text-sm text-foreground truncate">{f.fileName}</div>
+                                    <div className="text-xs text-muted">{(f.fileSize || 0) / 1024} KB</div>
                                   </div>
                                 </a>
                               ))}
@@ -268,7 +268,7 @@ export default function ChatSidebar() {
                       ) : (
                         <>
                           {conversations.length === 0 && (
-                            <div className="text-center text-sm text-nexus-400 mt-10">No active conversations.</div>
+                            <div className="text-center text-sm text-muted mt-10">No active conversations.</div>
                           )}
                           {conversations.map((convo) => {
                             const otherP = getOtherParticipant(convo)
@@ -278,21 +278,21 @@ export default function ChatSidebar() {
                               <button
                                 key={convo.id}
                                 onClick={() => setActiveChannel(convo.id)}
-                                className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-white/5"
+                                className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-foreground/5"
                               >
                                 <div className="relative">
-                                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-sm font-bold text-nexus-100 ring-2 ring-nexus-950">
+                                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-sm font-bold text-foreground ring-2 ring-background">
                                     {initials}
                                   </div>
                                   {convo.type === 'PRIVATE' && (
-                                    <div className="absolute bottom-0 right-0 ring-2 ring-nexus-950 rounded-full bg-nexus-950">
+                                    <div className="absolute bottom-0 right-0 ring-2 ring-background rounded-full bg-background">
                                       <PresenceBadge status={otherP?.userId && presenceMap[otherP.userId] ? presenceMap[otherP.userId].status : 'OFFLINE'} />
                                     </div>
                                   )}
                                 </div>
                                 <div className="flex-1 overflow-hidden">
-                                  <h3 className="truncate text-sm font-semibold text-nexus-100">{name}</h3>
-                                  <p className="truncate text-xs text-nexus-400">
+                                  <h3 className="truncate text-sm font-semibold text-foreground">{name}</h3>
+                                  <p className="truncate text-xs text-muted">
                                     {convo.lastMessage ? convo.lastMessage.content : 'No messages yet'}
                                   </p>
                                 </div>
@@ -309,28 +309,28 @@ export default function ChatSidebar() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="flex flex-1 flex-col bg-nexus-900/30"
+                    className="flex flex-1 flex-col bg-surface/50"
                   >
-                    <div className="flex items-center gap-3 border-b border-white/5 bg-nexus-950/50 p-4 backdrop-blur-md">
+                    <div className="flex items-center gap-3 border-b border-border/50 bg-background/50 p-4 backdrop-blur-md">
                       <button
                         onClick={() => setActiveChannel(null)}
-                        className="rounded-full p-1.5 text-nexus-400 transition-colors hover:bg-white/10 hover:text-nexus-100"
+                        className="rounded-full p-1.5 text-muted transition-colors hover:bg-foreground/10 hover:text-foreground"
                       >
                         <X className="h-4 w-4" />
                       </button>
                       <div className="flex flex-1 items-center gap-3">
                         <div className="relative">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-xs font-bold text-nexus-100">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-xs font-bold text-foreground">
                             {activeConversation?.type === 'PRIVATE' ? activeParticipant?.userName?.substring(0, 2).toUpperCase() : activeConversation?.name?.substring(0, 2).toUpperCase()}
                           </div>
                           {activeConversation?.type === 'PRIVATE' && (
-                            <div className="absolute bottom-0 right-0 ring-2 ring-nexus-950 rounded-full bg-nexus-950">
+                            <div className="absolute bottom-0 right-0 ring-2 ring-background rounded-full bg-background">
                               <PresenceBadge status={activeParticipant?.userId && presenceMap[activeParticipant.userId] ? presenceMap[activeParticipant.userId].status : 'OFFLINE'} />
                             </div>
                           )}
                         </div>
                         <div>
-                          <h3 className="text-sm font-semibold text-nexus-100">
+                          <h3 className="text-sm font-semibold text-foreground">
                             {activeConversation?.type === 'PRIVATE' ? activeParticipant?.userName : activeConversation?.name}
                           </h3>
                         </div>
@@ -368,11 +368,11 @@ export default function ChatSidebar() {
                               className={`group relative max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm transition-transform duration-300 hover:scale-[1.02] ${
                                 isMe
                                   ? 'bg-accent-indigo text-white rounded-br-sm'
-                                  : 'bg-white/10 text-nexus-100 rounded-bl-sm'
+                                  : 'bg-foreground/10 text-foreground rounded-bl-sm'
                               }`}
                             >
                                 {!isMe && activeConversation?.type === 'TEAM' && (
-                                  <div className="text-[10px] font-bold text-nexus-400 mb-1">{msg.senderName}</div>
+                                  <div className="text-[10px] font-bold text-muted mb-1">{msg.senderName}</div>
                                 )}
                                 
                                 {msg.isDeleted ? (
@@ -388,14 +388,14 @@ export default function ChatSidebar() {
                                     download
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center gap-3 p-3 bg-black/20 rounded-lg hover:bg-black/30 transition-colors mb-1"
+                                    className="flex items-center gap-3 p-3 bg-foreground/5 rounded-lg hover:bg-foreground/10 transition-colors mb-1"
                                   >
                                     <FileText className="h-6 w-6 text-accent-indigo" />
                                     <div className="flex-1 overflow-hidden">
                                       <p className="text-sm font-medium truncate">{msg.fileName}</p>
-                                      <p className="text-xs text-nexus-400">{Math.round((msg.fileSize || 0) / 1024)} KB</p>
+                                      <p className="text-xs text-muted">{Math.round((msg.fileSize || 0) / 1024)} KB</p>
                                     </div>
-                                    <Download className="h-4 w-4 text-nexus-300" />
+                                    <Download className="h-4 w-4 text-secondary" />
                                   </a>
                                 ) : editingMessageId === msg.id ? (
                                   <div className="flex flex-col gap-2">
@@ -424,13 +424,13 @@ export default function ChatSidebar() {
                                         <div className="relative">
                                           <button 
                                             onClick={() => setReactionPopoverId(reactionPopoverId === msg.id ? null : msg.id)}
-                                            className="p-1 text-nexus-400 hover:text-yellow-400 bg-white/10 rounded"
+                                            className="p-1 text-muted hover:text-yellow-400 bg-foreground/10 rounded"
                                             title="React"
                                           >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                                           </button>
                                           {reactionPopoverId === msg.id && (
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-black/80 backdrop-blur rounded-full px-2 py-1 flex gap-1 shadow-xl">
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-background/80 backdrop-blur rounded-full px-2 py-1 flex gap-1 shadow-xl border border-border">
                                               {REACTIONS.map(r => (
                                                 <button 
                                                   key={r} 
@@ -453,7 +453,7 @@ export default function ChatSidebar() {
                                                 setEditingMessageId(msg.id)
                                                 setEditContent(msg.content)
                                               }}
-                                              className="p-1 text-nexus-400 hover:text-white bg-white/10 rounded"
+                                              className="p-1 text-muted hover:text-foreground bg-foreground/10 rounded"
                                               title="Edit message"
                                             >
                                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -464,7 +464,7 @@ export default function ChatSidebar() {
                                                   deleteMessage(msg.id)
                                                 }
                                               }}
-                                              className="p-1 text-nexus-400 hover:text-red-400 bg-white/10 rounded"
+                                              className="p-1 text-muted hover:text-danger bg-foreground/10 rounded"
                                               title="Delete message"
                                             >
                                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -483,7 +483,7 @@ export default function ChatSidebar() {
                                       key={reaction}
                                       onClick={() => toggleReaction(msg.id, reaction)}
                                       className={`text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1 ${
-                                        user && users.includes(user.fullName) ? 'bg-accent-indigo text-white' : 'bg-white/10 text-nexus-300'
+                                        user && users.includes(user.fullName) ? 'bg-accent-indigo text-white' : 'bg-foreground/10 text-secondary'
                                       }`}
                                       title={users.join(', ')}
                                     >
@@ -493,11 +493,11 @@ export default function ChatSidebar() {
                                   ))}
                                 </div>
                               )}
-                            <span className="mt-1 flex items-center gap-1 text-[9px] text-nexus-500">
-                              {msg.isEdited && <span className="italic mr-1">(edited)</span>}
-                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              {isMe && renderStatus(msg)}
-                            </span>
+                              <span className="mt-1 flex items-center gap-1 text-[9px] text-muted">
+                                {msg.isEdited && <span className="italic mr-1">(edited)</span>}
+                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {isMe && renderStatus(msg)}
+                              </span>
                           </motion.div>
                         )
                       })}
@@ -507,12 +507,12 @@ export default function ChatSidebar() {
                         <motion.div
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-2 text-xs text-nexus-400 italic"
+                          className="flex items-center gap-2 text-xs text-muted italic"
                         >
                           <div className="flex space-x-1 items-center">
-                            <span className="w-1.5 h-1.5 bg-nexus-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-1.5 h-1.5 bg-nexus-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-1.5 h-1.5 bg-nexus-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-1.5 h-1.5 bg-muted rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                           </div>
                           {typingUsers[activeChannel].length === 1 
                             ? `${typingUsers[activeChannel][0].userName} is typing...`
@@ -523,14 +523,14 @@ export default function ChatSidebar() {
                       <div ref={messagesEndRef} />
                     </div>
 
-                    <div className="border-t border-white/5 bg-nexus-950/50 p-4">
+                    <div className="border-t border-border/50 bg-background/50 p-4">
                       <form onSubmit={handleSend} className="relative flex items-center">
                         <input
                           type="text"
                           value={inputText}
                           onChange={handleInputChange}
                           placeholder="Type a message..."
-                          className="w-full rounded-full border border-white/10 bg-white/5 py-2.5 pl-11 pr-12 text-sm text-nexus-100 placeholder-nexus-500 outline-none focus:border-accent-indigo/50 focus:bg-white/10"
+                          className="w-full rounded-full border border-border/50 bg-foreground/5 py-2.5 pl-11 pr-12 text-sm text-foreground placeholder-muted outline-none focus:border-accent-indigo/50 focus:bg-foreground/10"
                         />
                         <input 
                           type="file" 
@@ -541,10 +541,10 @@ export default function ChatSidebar() {
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="absolute left-2.5 flex h-8 w-8 items-center justify-center rounded-full text-nexus-400 hover:bg-white/10 hover:text-nexus-100 transition-colors"
+                          className="absolute left-2.5 flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-foreground/10 hover:text-foreground transition-colors"
                         >
                           {isUploading ? (
-                            <span className="w-3 h-3 border-2 border-nexus-400 border-t-transparent rounded-full animate-spin" />
+                            <span className="w-3 h-3 border-2 border-muted border-t-transparent rounded-full animate-spin" />
                           ) : (
                             <Paperclip className="h-4 w-4" />
                           )}

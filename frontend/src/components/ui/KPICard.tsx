@@ -79,7 +79,7 @@ export default function KPICard({
         'group relative overflow-hidden rounded-[var(--radius-xl)]',
         'glass p-6',
         'transition-all duration-500',
-        'hover:border-white/[0.08] hover:bg-white/[0.03]',
+        'hover:border-border/60 hover:bg-foreground/5',
         'hover:shadow-2xl hover:shadow-black/60'
       )}
       style={{
@@ -96,10 +96,10 @@ export default function KPICard({
 
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wider text-nexus-400 mb-3">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted mb-3">
             {title}
           </p>
-          <div className="text-3xl font-bold text-nexus-50 tracking-tight">
+          <div className="text-3xl font-bold text-foreground tracking-tight">
             {typeof value === 'number' ? (
               <AnimatedCounter value={numValue} format={format as any} />
             ) : (
@@ -120,12 +120,12 @@ export default function KPICard({
               <span
                 className={cn(
                   'text-xs font-medium',
-                  change > 0 ? 'text-success' : change < 0 ? 'text-danger' : 'text-nexus-400'
+                  change > 0 ? 'text-success' : change < 0 ? 'text-danger' : 'text-muted'
                 )}
               >
                 {change > 0 ? '+' : ''}{change.toFixed(1)}%
               </span>
-              <span className="text-xs text-nexus-500">vs last month</span>
+              <span className="text-xs text-muted/70">vs last month</span>
             </div>
           )}
         </div>
@@ -134,8 +134,8 @@ export default function KPICard({
         <motion.div
           className={cn(
             'flex h-12 w-12 items-center justify-center rounded-[var(--radius-lg)]',
-            'bg-white/[0.04] text-nexus-300 transition-all duration-300',
-            'group-hover:scale-110 group-hover:text-nexus-100'
+            'bg-foreground/5 text-secondary transition-all duration-300',
+            'group-hover:scale-110 group-hover:text-foreground'
           )}
           animate={hovered ? { rotate: [0, -5, 5, 0] } : {}}
           transition={{ duration: 0.4 }}

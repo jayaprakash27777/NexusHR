@@ -57,25 +57,63 @@
   --shadow-glow-indigo: 0 0 20px rgba(99,102,241,0.15), 0 0 60px rgba(99,102,241,0.05);
   --shadow-glow-violet: 0 0 20px rgba(139,92,246,0.15), 0 0 60px rgba(139,92,246,0.05);
 
-  /* Border radius */
+  /* Tailwind v4 mappings for semantic colors */
+  --color-background: var(--color-bg-base);
+  --color-surface: var(--color-bg-surface);
+  --color-surface-hover: var(--color-bg-surface-hover);
+  --color-foreground: var(--color-text-primary);
+  --color-muted: var(--color-text-muted);
+  --color-border: var(--color-border-subtle);
+  
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
   --radius-2xl: 28px;
 
-  /* Easing curves - Apple/Linear style */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Typography */
   --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
 /* ============================================
-   Base Styles
+   Light & Dark Theme Variables
+   ============================================ */
+
+:root {
+  /* Light Mode Palette */
+  --color-bg-base: #f8fafc;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-hover: #f1f5f9;
+  
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748b;
+  
+  --color-border-subtle: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  /* Dark Mode Palette (Nexus Deep Dark) */
+  --color-bg-base: #000000;
+  --color-bg-surface: #0a0a0a;
+  --color-bg-surface-hover: #171717;
+  
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #737373;
+  
+  --color-border-subtle: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   Base Styles & Professional Transitions
    ============================================ */
 
 html {
@@ -86,14 +124,20 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-nexus-950);
-  color: var(--color-nexus-100);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   overflow-x: hidden;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Make sure all major structural elements transition smoothly */
+div, nav, aside, header, main, section, article {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 ::selection {
   background-color: rgba(99, 102, 241, 0.3);
-  color: white;
+  color: inherit;
 }
 
 ::-webkit-scrollbar {
@@ -106,12 +150,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-nexus-600);
+  background: var(--color-muted);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-nexus-500);
+  background: var(--color-text-secondary);
 }
 
 /* ============================================
@@ -119,26 +163,29 @@ body {
    ============================================ */
 
 .glass {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
 .glass-subtle {
-  background: rgba(255, 255, 255, 0.01);
+  background: var(--glass-bg);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-bg);
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
 /* ============================================
@@ -218,9 +265,9 @@ body {
 
 .skeleton {
   background: linear-gradient(90deg,
-    var(--color-nexus-800) 25%,
-    var(--color-nexus-700) 50%,
-    var(--color-nexus-800) 75%
+    var(--color-bg-surface) 25%,
+    var(--color-bg-surface-hover) 50%,
+    var(--color-bg-surface) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;

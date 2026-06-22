@@ -21,7 +21,7 @@ const statusColors: Record<string, string> = {
   ACTIVE: 'bg-success/10 text-success border-success/20',
   ON_NOTICE: 'bg-warning/10 text-warning border-warning/20',
   TERMINATED: 'bg-danger/10 text-danger border-danger/20',
-  INACTIVE: 'bg-nexus-800 text-nexus-400 border-white/10',
+  INACTIVE: 'bg-surface-hover text-muted border-border',
 }
 
 const filterConfig: FilterOption[] = [
@@ -102,14 +102,14 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="w-full max-w-2xl rounded-2xl border border-white/10 bg-nexus-900 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-2xl rounded-2xl border border-border bg-surface shadow-2xl max-h-[90vh] overflow-y-auto"
       >
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
-            <h2 className="text-lg font-bold text-nexus-50">Add New Employee</h2>
-            <p className="text-sm text-nexus-400 mt-0.5">Create a new employee record in the system</p>
+            <h2 className="text-lg font-bold text-foreground">Add New Employee</h2>
+            <p className="text-sm text-muted mt-0.5">Create a new employee record in the system</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg text-nexus-400 hover:text-white hover:bg-white/5 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-foreground/5 transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -117,20 +117,20 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">First Name *</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">First Name *</label>
               <input
                 required type="text" value={form.firstName || ''}
                 onChange={(e) => setForm(f => ({ ...f, firstName: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
                 placeholder="John"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Last Name *</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Last Name *</label>
               <input
                 required type="text" value={form.lastName || ''}
                 onChange={(e) => setForm(f => ({ ...f, lastName: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
                 placeholder="Doe"
               />
             </div>
@@ -138,13 +138,13 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2 flex items-center justify-between">
                 <span>Work Email *</span>
                 <button
                   type="button"
                   onClick={() => {
                     if (form.firstName && form.lastName) {
-                      setForm(f => ({ ...f, email: `${form.firstName.toLowerCase()}.${form.lastName.toLowerCase()}@nexushr.com` }))
+                      setForm(f => ({ ...f, email: `${form.firstName?.toLowerCase()}.${form.lastName?.toLowerCase()}@nexushr.com` }))
                     } else {
                       toast.error('Missing Names', 'Please enter first and last name to generate email.')
                     }
@@ -157,7 +157,7 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
               <input
                 required type="email" value={form.email || ''}
                 onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
                 placeholder="john.doe@nexushr.com"
               />
             </div>
@@ -165,20 +165,20 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Designation *</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Designation *</label>
               <input
                 required type="text" value={form.designation || ''}
                 onChange={(e) => setForm(f => ({ ...f, designation: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
                 placeholder="Senior Engineer"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Department ID *</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Department ID *</label>
               <input
                 required type="text" value={form.departmentId || ''}
                 onChange={(e) => setForm(f => ({ ...f, departmentId: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
                 placeholder="dept-001"
               />
             </div>
@@ -186,19 +186,19 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Date of Joining *</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Date of Joining *</label>
               <input
                 required type="date" value={form.dateOfJoining || ''}
                 onChange={(e) => setForm(f => ({ ...f, dateOfJoining: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Employment Type *</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Employment Type *</label>
               <select
                 value={form.employmentType || 'FULL_TIME'}
                 onChange={(e) => setForm(f => ({ ...f, employmentType: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
               >
                 <option value="FULL_TIME">Full Time</option>
                 <option value="PART_TIME">Part Time</option>
@@ -210,20 +210,20 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Phone</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Phone</label>
               <input
                 type="tel" value={form.phone || ''}
                 onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
                 placeholder="+91 98765 43210"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Base Salary (₹/year)</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Base Salary (₹/year)</label>
               <input
                 type="number" value={form.salary || ''}
                 onChange={(e) => setForm(f => ({ ...f, salary: parseFloat(e.target.value) || undefined }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
                 placeholder="1200000"
               />
             </div>
@@ -231,11 +231,11 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Gender</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Gender</label>
               <select
                 value={form.gender || ''}
                 onChange={(e) => setForm(f => ({ ...f, gender: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
               >
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
@@ -245,22 +245,22 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Date of Birth</label>
+              <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Date of Birth</label>
               <input
                 type="date" value={form.dateOfBirth || ''}
                 onChange={(e) => setForm(f => ({ ...f, dateOfBirth: e.target.value }))}
-                className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-nexus-400 uppercase tracking-wider mb-2">Address</label>
+            <label className="block text-xs font-medium text-muted uppercase tracking-wider mb-2">Address</label>
             <textarea
               value={form.address || ''}
               onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
               rows={2}
-              className="w-full rounded-lg border border-white/10 bg-nexus-800/50 px-4 py-2.5 text-sm text-white focus:border-accent-indigo focus:outline-none resize-none"
+              className="w-full rounded-lg border border-border bg-surface-hover/50 px-4 py-2.5 text-sm text-foreground focus:border-accent-indigo focus:outline-none resize-none"
               placeholder="Full Address"
             />
           </div>
@@ -272,8 +272,8 @@ function AddEmployeeModal({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-white/10 text-sm text-nexus-300 hover:bg-white/5 transition-colors">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-border text-sm text-secondary hover:bg-foreground/5 transition-colors">
               Cancel
             </button>
             <button
@@ -366,8 +366,8 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-nexus-50">Employees Directory</h1>
-          <p className="text-sm text-nexus-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Employees Directory</h1>
+          <p className="text-sm text-muted mt-1">
             {data?.totalElements !== undefined ? `${data.totalElements} total employees` : 'Loading...'}
           </p>
         </div>
@@ -410,14 +410,14 @@ export default function EmployeesPage() {
                 toast.success('Generation Complete', `Successfully added ${success} employees.`);
                 queryClient.invalidateQueries({ queryKey: ['employees'] });
               }}
-              className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-nexus-300 hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-border bg-foreground/5 px-4 py-2 text-sm font-medium text-secondary hover:bg-foreground/10 transition-colors"
             >
               Seed 100 Employees
             </button>
           </HasPermission>
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-nexus-300 hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-border bg-foreground/5 px-4 py-2 text-sm font-medium text-secondary hover:bg-foreground/10 transition-colors"
           >
             <Download className="h-4 w-4" /> Export CSV
           </button>
@@ -435,16 +435,16 @@ export default function EmployeesPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-4 rounded-[var(--radius-xl)] border border-white/5 bg-white/[0.02] p-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-[var(--radius-xl)] border border-border/50 bg-foreground/5 p-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 items-center gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-nexus-500" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPage(0) }}
               placeholder="Search name, email, role..."
-              className="w-full rounded-lg bg-black/20 py-1.5 pl-9 pr-3 text-sm text-nexus-100 placeholder-nexus-600 outline-none focus:ring-1 focus:ring-accent-indigo"
+              className="w-full rounded-lg bg-black/5 py-1.5 pl-9 pr-3 text-sm text-foreground placeholder-muted outline-none focus:ring-1 focus:ring-accent-indigo"
             />
           </div>
           <AdvancedFilters
@@ -455,17 +455,17 @@ export default function EmployeesPage() {
         </div>
         <div className="flex items-center gap-3">
           <SavedViews currentFilters={activeFilters} onApplyView={(f) => { setActiveFilters(f); setPage(0) }} />
-          <div className="hidden sm:flex items-center rounded-lg bg-black/20 p-1 border border-white/5">
+          <div className="hidden sm:flex items-center rounded-lg bg-black/5 p-1 border border-border/50">
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-white/10 text-white' : 'text-nexus-500 hover:text-nexus-300'}`}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'table' ? 'bg-foreground/10 text-foreground' : 'text-muted hover:text-secondary'}`}
               aria-label="Table View"
             >
               <List className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'text-nexus-500 hover:text-nexus-300'}`}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-foreground/10 text-foreground' : 'text-muted hover:text-secondary'}`}
               aria-label="Grid View"
             >
               <Grid className="h-4 w-4" />
@@ -478,13 +478,13 @@ export default function EmployeesPage() {
       {isLoading && !data ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-44 rounded-2xl bg-white/5 animate-pulse" />
+            <div key={i} className="h-44 rounded-2xl bg-foreground/5 animate-pulse" />
           ))}
         </div>
       ) : isError ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <AlertCircle className="h-10 w-10 text-danger" />
-          <p className="text-nexus-300">Failed to load employees. Ensure the backend is running.</p>
+          <p className="text-secondary">Failed to load employees. Ensure the backend is running.</p>
         </div>
       ) : isEmpty ? (
         <SmartEmptyState
@@ -513,7 +513,7 @@ export default function EmployeesPage() {
                     <div className="absolute top-4 right-4 z-10" onClick={(e) => e.stopPropagation()}>
                       <input 
                         type="checkbox" 
-                        className="h-4 w-4 rounded border-white/20 bg-black/20 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/20"
+                        className="h-4 w-4 rounded border-border/50 bg-black/5 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/5"
                         checked={isSelected}
                         onChange={() => toggleSelection(emp.id)}
                       />
@@ -521,18 +521,18 @@ export default function EmployeesPage() {
                     <div className="flex items-start justify-between mb-4 pr-6">
                       <div className="flex items-center gap-3">
                         <div className="relative h-10 w-10">
-                          <div className={`absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-sm font-semibold text-nexus-200 ring-2 ring-white/[0.06] transition-opacity`}>
+                          <div className={`absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-sm font-semibold text-foreground ring-2 ring-border/50 transition-opacity`}>
                             {initials}
                           </div>
                         </div>
                         <div>
-                          <h3 className="text-sm font-semibold text-nexus-100 group-hover:text-nexus-50 transition-colors">{emp.fullName}</h3>
-                          <p className="text-xs text-nexus-500">{emp.employeeId}</p>
+                          <h3 className="text-sm font-semibold text-foreground group-hover:text-accent-indigo transition-colors">{emp.fullName}</h3>
+                          <p className="text-xs text-muted/70">{emp.employeeId}</p>
                         </div>
                       </div>
                       <HasPermission category="EMPLOYEE" action="DELETE">
                         <button 
-                          className="p-1.5 text-nexus-600 hover:text-danger hover:bg-danger/10 rounded-md transition-colors"
+                          className="p-1.5 text-muted/50 hover:text-danger hover:bg-danger/10 rounded-md transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (confirm(`Are you sure you want to remove ${emp.fullName}?`)) {
@@ -546,19 +546,19 @@ export default function EmployeesPage() {
                       </HasPermission>
                     </div>
                     <div className="space-y-2 mb-4">
-                      <p className="text-xs text-nexus-300">{emp.designation}</p>
-                      <p className="text-xs text-nexus-500">{emp.departmentName}</p>
+                      <p className="text-xs text-secondary">{emp.designation}</p>
+                      <p className="text-xs text-muted">{emp.departmentName}</p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${statusColors[emp.status] ?? 'bg-nexus-800 text-nexus-400 border-white/10'}`}>
+                      <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${statusColors[emp.status] ?? 'bg-surface-hover text-muted border-border'}`}>
                         {emp.status.replace('_', ' ')}
                       </span>
                       <div className="flex gap-2">
-                        <a href={`mailto:${emp.email}`} className="text-nexus-600 hover:text-accent-indigo transition-colors" aria-label="Email" onClick={e => e.stopPropagation()}>
+                        <a href={`mailto:${emp.email}`} className="text-muted/50 hover:text-accent-indigo transition-colors" aria-label="Email" onClick={e => e.stopPropagation()}>
                           <Mail className="h-3.5 w-3.5" />
                         </a>
                         {emp.phone && (
-                          <a href={`tel:${emp.phone}`} className="text-nexus-600 hover:text-accent-indigo transition-colors" aria-label="Phone" onClick={e => e.stopPropagation()}>
+                          <a href={`tel:${emp.phone}`} className="text-muted/50 hover:text-accent-indigo transition-colors" aria-label="Phone" onClick={e => e.stopPropagation()}>
                             <Phone className="h-3.5 w-3.5" />
                           </a>
                         )}
@@ -569,15 +569,15 @@ export default function EmployeesPage() {
               })}
             </div>
           ) : (
-            <div className="rounded-[var(--radius-xl)] border border-white/5 bg-nexus-900/40 backdrop-blur-xl overflow-hidden shadow-2xl">
+            <div className="rounded-[var(--radius-xl)] border border-border/50 bg-surface/60 backdrop-blur-xl overflow-hidden shadow-2xl">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-nexus-300">
-                  <thead className="bg-white/[0.02] text-xs uppercase text-nexus-400">
+                <table className="w-full text-left text-sm text-secondary">
+                  <thead className="bg-foreground/5 text-xs uppercase text-muted">
                     <tr>
                       <th className="px-4 py-3 w-12">
                         <input 
                           type="checkbox" 
-                          className="h-4 w-4 rounded border-white/20 bg-black/20 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/20"
+                          className="h-4 w-4 rounded border-border/50 bg-black/5 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/5"
                           checked={selectedIds.size === employees.length && employees.length > 0}
                           onChange={() => {
                             if (selectedIds.size === employees.length) {
@@ -605,39 +605,39 @@ export default function EmployeesPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.02 }}
-                          className={`hover:bg-white/[0.02] transition-colors cursor-pointer ${isSelected ? 'bg-accent-indigo/5' : ''}`}
+                          className={`hover:bg-foreground/5 transition-colors cursor-pointer ${isSelected ? 'bg-accent-indigo/5' : ''}`}
                           onClick={() => navigate(`/employees/${emp.id}`)}
                         >
                           <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                             <input 
                               type="checkbox" 
-                              className="h-4 w-4 rounded border-white/20 bg-black/20 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/20"
+                              className="h-4 w-4 rounded border-border/50 bg-black/5 text-accent-indigo focus:ring-accent-indigo focus:ring-offset-black/5"
                               checked={isSelected}
                               onChange={() => toggleSelection(emp.id)}
                             />
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-xs font-semibold text-nexus-200 ring-1 ring-white/[0.06]">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-indigo/20 to-accent-violet/20 text-xs font-semibold text-foreground ring-1 ring-border/50">
                                 {initials}
                               </div>
                               <div>
-                                <div className="font-medium text-nexus-100">{emp.fullName}</div>
-                                <div className="text-xs text-nexus-500">{emp.email}</div>
+                                <div className="font-medium text-foreground">{emp.fullName}</div>
+                                <div className="text-xs text-muted/70">{emp.email}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-nexus-300">{emp.designation}</td>
-                          <td className="px-4 py-3 text-nexus-400">{emp.departmentName}</td>
+                          <td className="px-4 py-3 text-secondary">{emp.designation}</td>
+                          <td className="px-4 py-3 text-muted">{emp.departmentName}</td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${statusColors[emp.status] ?? 'bg-nexus-800 text-nexus-400 border-white/10'}`}>
+                            <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${statusColors[emp.status] ?? 'bg-surface-hover text-muted border-border'}`}>
                               {emp.status.replace('_', ' ')}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">
                             <HasPermission category="EMPLOYEE" action="DELETE">
                               <button 
-                                className="text-nexus-500 hover:text-danger transition-colors p-1" 
+                                className="text-muted/50 hover:text-danger transition-colors p-1" 
                                 onClick={e => {
                                   e.stopPropagation();
                                   if (confirm(`Are you sure you want to remove ${emp.fullName}?`)) {
@@ -665,17 +665,17 @@ export default function EmployeesPage() {
               <button
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={data?.first}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 text-sm text-nexus-300 hover:bg-white/5 disabled:opacity-40 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border/50 text-sm text-secondary hover:bg-foreground/5 disabled:opacity-40 transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" /> Prev
               </button>
-              <span className="text-sm text-nexus-400">
+              <span className="text-sm text-muted">
                 Page {(data?.number ?? 0) + 1} of {data?.totalPages ?? 1}
               </span>
               <button
                 onClick={() => setPage(p => p + 1)}
                 disabled={data?.last}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/10 text-sm text-nexus-300 hover:bg-white/5 disabled:opacity-40 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border/50 text-sm text-secondary hover:bg-foreground/5 disabled:opacity-40 transition-colors"
               >
                 Next <ChevronRight className="h-4 w-4" />
               </button>

@@ -69,6 +69,8 @@ export interface CreateEmployeeRequest {
   dateOfBirth?: string
   employmentType: string
   gender?: string
+  address?: string
+  emergencyContact?: string
   salary?: number
 }
 

@@ -23,7 +23,7 @@ function Minimal3DLoader() {
 
 export default function LoadingScreen() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-nexus-950">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-6">
         {/* Animated 3D Logo */}
         <motion.div
@@ -46,13 +46,13 @@ export default function LoadingScreen() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <span className="text-lg font-semibold text-nexus-50 tracking-tight">NexusHR</span>
-          <span className="text-xs text-nexus-400 tracking-wide uppercase">Loading workspace</span>
+          <span className="text-lg font-semibold text-foreground tracking-tight">NexusHR</span>
+          <span className="text-xs text-muted tracking-wide uppercase">Loading workspace</span>
         </motion.div>
 
         {/* Progress bar */}
         <motion.div
-          className="h-0.5 w-48 overflow-hidden rounded-full bg-nexus-800"
+          className="h-0.5 w-48 overflow-hidden rounded-full bg-surface-hover"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
