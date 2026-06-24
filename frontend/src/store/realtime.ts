@@ -15,7 +15,7 @@ export interface ActivityEvent {
   metadata?: Record<string, any>
 }
 
-const WS_URL = import.meta.env.VITE_WS_URL || (import.meta.env.PROD ? 'https://nexushr-fxe4.onrender.com/api/ws' : 'http://localhost:8080/api/ws')
+const WS_URL = import.meta.env.VITE_WS_URL || (import.meta.env.PROD ? 'https://nexushr-fxe4.onrender.com/api/ws' : '/api/ws')
 
 interface RealtimeState {
   status: ConnectionStatus

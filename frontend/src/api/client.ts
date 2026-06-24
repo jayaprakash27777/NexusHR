@@ -1,6 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://nexushr-fxe4.onrender.com/api' : 'http://localhost:8080/api')
+const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://nexushr-fxe4.onrender.com/api' : '/api')
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
