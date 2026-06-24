@@ -108,7 +108,7 @@ export const payrollApi = {
 
   exportBankFile: (month: number, year: number) => {
     // Return the URL for downloading
-    return `${api.defaults.baseURL || 'http://localhost:8080/api'}/payroll/export/bank?month=${month}&year=${year}`
+    return `${api.defaults.baseURL || 'https://nexushr-fxe4.onrender.com/api'}/payroll/export/bank?month=${month}&year=${year}`
   },
 
   // Admin: Search and paginate monthly payroll

@@ -5,7 +5,7 @@ import { X, Search, Send, Phone, Video, Check, CheckCheck, Paperclip, FileText, 
 import PresenceBadge from './PresenceBadge'
 import CreateChannelModal from './CreateChannelModal'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://nexushr-fxe4.onrender.com'
 
 export default function ChatSidebar() {
   const { 
