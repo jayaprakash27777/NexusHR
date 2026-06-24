@@ -108,11 +108,28 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getByStatus(status, page, size));
     }
 
-    @GetMapping("/balance/{employeeId}")
-    @Operation(summary = "Leave balances", description = "Get leave balances for an employee")
+    @GetMapping("/balances/{employeeId}")
+    @Operation(summary = "Get leave balances", description = "Get leave balances for an employee for a specific year")
     public ResponseEntity<ApiResponse<List<LeaveBalanceResponse>>> getLeaveBalances(
             @PathVariable UUID employeeId,
-            @RequestParam(defaultValue = "2026") int year) {
+            @RequestParam int year) {
         return ResponseEntity.ok(leaveService.getLeaveBalances(employeeId, year));
+    }
+
+    @PostMapping("/grant-compoff/{employeeId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Grant comp-off", description = "Grant compensatory off to an employee")
+    public ResponseEntity<ApiResponse<LeaveBalanceResponse>> grantCompOff(
+            @PathVariable UUID employeeId,
+            @RequestParam int days) {
+        return ResponseEntity.ok(leaveService.grantCompOff(employeeId, days));
+    }
+
+    @PostMapping("/carry-forward/{year}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Carry forward leaves", description = "Carry forward earned leaves to next year")
+    public ResponseEntity<ApiResponse<Void>> carryForwardLeaves(
+            @PathVariable int year) {
+        return ResponseEntity.ok(leaveService.carryForwardLeaves(year));
     }
 }

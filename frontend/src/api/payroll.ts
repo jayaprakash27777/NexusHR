@@ -15,11 +15,13 @@ export interface PayrollResponse {
   pfDeduction: number
   professionalTax: number
   incomeTax: number
+  esiDeduction: number
   otherDeductions: number
   totalDeductions: number
   bonus: number
   netSalary: number
-  status: 'DRAFT' | 'APPROVED' | 'PAID' | 'FAILED'
+  currency: string
+  status: 'DRAFT' | 'APPROVED' | 'PAID' | 'FAILED' | 'REVERSED'
   processedAt: string | null
   paidAt: string | null
 }
@@ -47,6 +49,7 @@ export interface SalaryStructureRequest {
   hraPercentage: number
   daPercentage: number
   pfPercentage: number
+  esiPercentage: number
   otherAllowances: number
   active: boolean
 }
@@ -94,6 +97,18 @@ export const payrollApi = {
       params: { month, year }
     })
     return res.data.data
+  },
+
+
+
+  revertPayroll: async (id: string) => {
+    const res = await api.post<{ data: PayrollResponse }>(`/payroll/revert/${id}`)
+    return res.data.data
+  },
+
+  exportBankFile: (month: number, year: number) => {
+    // Return the URL for downloading
+    return `${api.defaults.baseURL || 'http://localhost:8080/api'}/payroll/export/bank?month=${month}&year=${year}`
   },
 
   // Admin: Search and paginate monthly payroll
@@ -159,8 +174,13 @@ export const payrollApi = {
     return res.data.data
   },
 
+  reversePayroll: async (payrollId: string) => {
+    const res = await api.post<ApiResponse<PayrollResponse>>(`/payroll/${payrollId}/reverse`)
+    return res.data.data
+  },
+
   // Admin: Export monthly report
-  exportMonthlyReport: async (month: number, year: number, format: 'pdf' | 'excel' | 'csv') => {
+  exportMonthlyReport: async (month: number, year: number, format: 'pdf' | 'excel' | 'csv' | 'bank-file') => {
     const res = await api.get(`/payroll/reports/export`, {
       params: { month, year, format },
       responseType: 'blob'
@@ -179,7 +199,10 @@ export const payrollApi = {
         fileName = matches[1].replace(/['"]/g, '')
       }
     } else {
-      fileName = `Payroll_Report_${month}_${year}.${format === 'excel' ? 'xlsx' : format}`
+      let ext: string = format
+      if (format === 'excel') ext = 'xlsx'
+      if (format === 'bank-file') ext = 'csv'
+      fileName = `Payroll_Report_${month}_${year}.${ext}`
     }
     
     link.setAttribute('download', fileName)

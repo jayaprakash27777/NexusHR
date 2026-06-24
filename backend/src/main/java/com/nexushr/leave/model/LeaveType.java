@@ -4,5 +4,6 @@ public enum LeaveType {
     CASUAL_LEAVE,
     SICK_LEAVE,
     EARNED_LEAVE,
-    WORK_FROM_HOME
+    WORK_FROM_HOME,
+    COMPENSATORY_OFF
 }

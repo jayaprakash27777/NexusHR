@@ -143,6 +143,18 @@ export const employeesApi = {
     return res.data.data
   },
 
+  uploadAvatar: async (id: string, file: File): Promise<Employee> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    const res = await apiClient.post<ApiResponse<Employee>>(`/employees/${id}/avatar`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return res.data.data
+  },
+
   getDocuments: async (id: string): Promise<EmployeeDocument[]> => {
     const res = await apiClient.get<ApiResponse<EmployeeDocument[]>>(`/employees/${id}/documents`)
     return res.data.data

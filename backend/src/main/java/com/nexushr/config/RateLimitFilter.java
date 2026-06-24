@@ -24,7 +24,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
 
     private Bucket createNewBucket() {
-        Bandwidth limit = Bandwidth.classic(100, Refill.greedy(100, Duration.ofMinutes(1)));
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(100)
+                .refillGreedy(100, Duration.ofMinutes(1))
+                .build();
         return Bucket.builder()
                 .addLimit(limit)
                 .build();
@@ -42,7 +45,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else {
             log.warn("Rate limit exceeded for IP: {}", ip);
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.getWriter().write("Too many requests");
+            response.setContentType("application/json");
+            response.getWriter().write("{ \"success\": false, \"message\": \"Too many requests. Please try again later.\" }");
         }
     }
 }

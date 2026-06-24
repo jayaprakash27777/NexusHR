@@ -17,6 +17,8 @@ public interface PayrollService {
 
     ApiResponse<PayrollResponse> markAsPaid(UUID payrollId);
 
+    ApiResponse<PayrollResponse> reversePayroll(UUID payrollId);
+
     ApiResponse<PayrollResponse> getById(UUID payrollId);
 
     ApiResponse<PayrollResponse> getByEmployeeAndMonth(UUID employeeId, int month, int year);

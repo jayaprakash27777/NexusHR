@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: nexushr
       POSTGRES_USER: nexushr
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-nexushr_secret_2025}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env file}
     ports:
       - "5432:5432"
     volumes:
@@ -33,9 +33,9 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/nexushr
       SPRING_DATASOURCE_USERNAME: nexushr
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-nexushr_secret_2025}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env file}
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: ${JWT_SECRET:-nexushr-super-secret-jwt-key-for-production-2025-must-change}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env file}
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     ports:
       - "8080:8080"

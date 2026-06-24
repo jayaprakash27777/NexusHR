@@ -39,13 +39,13 @@ public class NexusPermissionEvaluator implements PermissionEvaluator {
         Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
         
         // Super Admin Override
-        if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("SYSTEM_ADMIN"))) {
+        if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("SYSTEM_ADMIN") || a.getAuthority().equals("ROLE_SUPER_ADMIN"))) {
             return true;
         }
 
         // Read-Only Auditor Mode Check (Deny Modifications if ONLY auditor)
         boolean isAuditor = authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_AUDITOR"));
-        if (isAuditor && !authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MANAGER"))) {
+        if (isAuditor && !authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_MANAGER"))) {
             if (action.equals("CREATE") || action.equals("UPDATE") || action.equals("DELETE")) {
                 return false;
             }

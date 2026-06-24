@@ -3,30 +3,152 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore, useAuthStore, useChatStore } from '@/store'
 import { cn, getInitials } from '@/lib/utils'
 import {
-  LayoutDashboard, Users, Clock, CalendarDays, Wallet,
+  LayoutDashboard, Users, Clock, CalendarDays, Wallet, Briefcase,
   TrendingUp, Sparkles, Bell, ChevronLeft, LogOut, Settings,
   Command, MessageSquare, MonitorPlay, Building2, Shield, Settings2, FileText, Workflow, GitMerge, UserSquare, Rocket, Map, BookOpen, GraduationCap, BrainCircuit, GitBranch, PieChart, Crown, Milestone
 } from 'lucide-react'
 import HasPermission from '@/components/auth/HasPermission'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 
-const navItems = [
-  { path: '/executive', label: 'Command Center', icon: MonitorPlay },
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/employees', label: 'Employees', icon: Users },
-  { path: '/attendance', label: 'Attendance', icon: Clock },
-  { path: '/leaves', label: 'Leaves', icon: CalendarDays },
-  { path: '/payroll', label: 'Payroll', icon: Wallet },
-  { path: '/performance', label: 'Performance', icon: TrendingUp },
-  { path: '/ai-insights', label: 'AI Insights', icon: Sparkles },
-  { path: '/notifications', label: 'Notifications', icon: Bell },
-]
+// Role-specific dashboard path mapping
+const ROLE_DASHBOARD_MAP: Record<string, string> = {
+  'ROLE_SUPER_ADMIN': '/executive',
+  'ROLE_ADMIN': '/dashboard',
+  'ROLE_HR_DIRECTOR': '/dashboard/hr',
+  'ROLE_HR_EXECUTIVE': '/dashboard/hr-exec',
+  'ROLE_FINANCE_MANAGER': '/dashboard/finance',
+  'ROLE_DEPARTMENT_MANAGER': '/dashboard/dept-manager',
+  'ROLE_MANAGER': '/dashboard/manager',
+  'ROLE_TEAM_LEAD': '/dashboard/team-lead',
+  'ROLE_AUDITOR': '/dashboard/auditor',
+  'ROLE_EMPLOYEE': '/dashboard/employee',
+}
+
+// Role display labels
+const ROLE_LABEL_MAP: Record<string, string> = {
+  'ROLE_SUPER_ADMIN': 'Super Admin',
+  'ROLE_ADMIN': 'Administrator',
+  'ROLE_HR_DIRECTOR': 'HR Director',
+  'ROLE_HR_EXECUTIVE': 'HR Executive',
+  'ROLE_FINANCE_MANAGER': 'Finance Manager',
+  'ROLE_DEPARTMENT_MANAGER': 'Dept Manager',
+  'ROLE_MANAGER': 'Manager',
+  'ROLE_TEAM_LEAD': 'Team Lead',
+  'ROLE_AUDITOR': 'Auditor',
+  'ROLE_EMPLOYEE': 'Employee',
+}
+
+// Define which nav items each role can see
+function getNavItems(role: string) {
+  const dashboardPath = ROLE_DASHBOARD_MAP[role] || '/dashboard/employee'
+  
+  // Base items everyone sees
+  const base = [
+    { path: dashboardPath, label: 'Dashboard', icon: LayoutDashboard },
+  ]
+
+  // Items by role category
+  const isSuperAdmin = role === 'ROLE_SUPER_ADMIN'
+  const isAdmin = role === 'ROLE_ADMIN' || isSuperAdmin
+  const isHR = role.startsWith('ROLE_HR')
+  const isFinance = role.startsWith('ROLE_FINANCE')
+  const isManager = role === 'ROLE_MANAGER' || role === 'ROLE_DEPARTMENT_MANAGER' || role === 'ROLE_TEAM_LEAD'
+  const isAuditor = role === 'ROLE_AUDITOR'
+
+  // Admin / Super Admin: Everything
+  if (isAdmin) {
+    return [
+      ...(isSuperAdmin ? [{ path: '/executive', label: 'Command Center', icon: MonitorPlay }] : []),
+      { path: dashboardPath, label: 'Dashboard', icon: LayoutDashboard },
+      { path: '/employees', label: 'Employees', icon: Users },
+      { path: '/attendance', label: 'Attendance', icon: Clock },
+      { path: '/leaves', label: 'Leaves', icon: CalendarDays },
+      { path: '/payroll', label: 'Payroll', icon: Wallet },
+      { path: '/performance', label: 'Performance', icon: TrendingUp },
+      { path: '/recruitment', label: 'Recruitment', icon: Briefcase },
+      { path: '/analytics', label: 'Analytics', icon: PieChart },
+      { path: '/reports', label: 'Reports', icon: FileText },
+      { path: '/ai-insights', label: 'AI Insights', icon: Sparkles },
+      { path: '/documents', label: 'Documents', icon: FileText },
+      { path: '/security/rbac', label: 'Access Control', icon: Shield },
+      { path: '/notifications', label: 'Notifications', icon: Bell },
+    ]
+  }
+
+  // HR roles
+  if (isHR) {
+    return [
+      ...base,
+      { path: '/employees', label: 'Employees', icon: Users },
+      { path: '/attendance', label: 'Attendance', icon: Clock },
+      { path: '/leaves', label: 'Leaves', icon: CalendarDays },
+      { path: '/recruitment', label: 'Recruitment', icon: Briefcase },
+      { path: '/performance', label: 'Performance', icon: TrendingUp },
+      { path: '/analytics', label: 'Analytics', icon: PieChart },
+      { path: '/reports', label: 'Reports', icon: FileText },
+      { path: '/documents', label: 'Documents', icon: FileText },
+      { path: '/notifications', label: 'Notifications', icon: Bell },
+    ]
+  }
+
+  // Finance roles
+  if (isFinance) {
+    return [
+      ...base,
+      { path: '/payroll', label: 'Payroll', icon: Wallet },
+      { path: '/employees', label: 'Employees', icon: Users },
+      { path: '/reports', label: 'Reports', icon: FileText },
+      { path: '/analytics', label: 'Analytics', icon: PieChart },
+      { path: '/documents', label: 'Documents', icon: FileText },
+      { path: '/notifications', label: 'Notifications', icon: Bell },
+    ]
+  }
+
+  // Manager / Team Lead / Dept Manager
+  if (isManager) {
+    return [
+      ...base,
+      { path: '/employees', label: 'Team', icon: Users },
+      { path: '/attendance', label: 'Attendance', icon: Clock },
+      { path: '/leaves', label: 'Leaves', icon: CalendarDays },
+      { path: '/performance', label: 'Performance', icon: TrendingUp },
+      { path: '/documents', label: 'Documents', icon: FileText },
+      { path: '/notifications', label: 'Notifications', icon: Bell },
+    ]
+  }
+
+  // Auditor
+  if (isAuditor) {
+    return [
+      ...base,
+      { path: '/settings/audit-logs', label: 'Audit Logs', icon: FileText },
+      { path: '/security/rbac', label: 'Access Control', icon: Shield },
+      { path: '/settings/security', label: 'Security Center', icon: Settings },
+      { path: '/notifications', label: 'Notifications', icon: Bell },
+    ]
+  }
+
+  // Default: Employee
+  return [
+    ...base,
+    { path: '/attendance', label: 'Attendance', icon: Clock },
+    { path: '/leaves', label: 'Leaves', icon: CalendarDays },
+    { path: '/performance', label: 'My Goals', icon: TrendingUp },
+    { path: '/documents', label: 'Documents', icon: FileText },
+    { path: '/notifications', label: 'Notifications', icon: Bell },
+  ]
+}
 
 export default function Sidebar() {
   const { sidebarCollapsed, toggleSidebarCollapse } = useUIStore()
   const { user, logout } = useAuthStore()
   const toggleChatSidebar = useChatStore(s => s.toggleChatSidebar)
   const location = useLocation()
+
+  const userRole = user?.role || 'ROLE_EMPLOYEE'
+  const navItems = getNavItems(userRole)
+  const roleLabel = ROLE_LABEL_MAP[userRole] || userRole.replace('ROLE_', '').replace(/_/g, ' ')
+  const isAdmin = userRole === 'ROLE_ADMIN' || userRole === 'ROLE_SUPER_ADMIN'
 
   return (
     <motion.aside
@@ -83,11 +205,10 @@ export default function Sidebar() {
                 whileHover={{ x: 2 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {/* Active indicator */}
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute left-1 right-1 top-1 bottom-1 -z-10 rounded-[var(--radius-md)] bg-foreground/10 shadow-sm border border-border/50"
+                    className="absolute left-0 right-0 top-0 bottom-0 -z-10 rounded-[var(--radius-lg)] bg-accent-indigo/10 shadow-[inset_0_0_12px_rgba(99,102,241,0.1)] border border-accent-indigo/20 backdrop-blur-md"
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                   />
                 )}
@@ -122,8 +243,9 @@ export default function Sidebar() {
             </NavLink>
           )
         })}
-        {/* Enterprise Platform */}
-        {!sidebarCollapsed && (
+
+        {/* Enterprise Platform — only for admins */}
+        {isAdmin && !sidebarCollapsed && (
           <div className="mt-6 mb-2">
             <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-accent-indigo">
               Enterprise Platform
@@ -135,22 +257,6 @@ export default function Sidebar() {
               )}>
                 <Settings className="h-[18px] w-[18px] flex-shrink-0" />
                 <span className="truncate font-medium">Enterprise Hub</span>
-              </NavLink>
-            </div>
-          </div>
-        )}
-        {/* Favorites / Pinned Section */}
-        {!sidebarCollapsed && (
-          <div className="mt-6">
-            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-nexus-500">
-              Pinned Favorites
-            </div>
-            <div className="mt-1 space-y-1">
-              <NavLink to="/dashboard" className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-nexus-400 hover:bg-white/5 hover:text-nexus-200 transition-colors">
-                <span className="truncate">High Performers</span>
-              </NavLink>
-              <NavLink to="/payroll" className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-nexus-400 hover:bg-white/5 hover:text-nexus-200 transition-colors">
-                <span className="truncate">Q2 Payroll Review</span>
               </NavLink>
             </div>
           </div>
@@ -219,8 +325,8 @@ export default function Sidebar() {
                 <p className="text-xs font-medium text-foreground truncate">
                   {user?.fullName || 'Admin User'}
                 </p>
-                <p className="text-[10px] text-muted truncate">
-                  {user?.role || 'ADMIN'}
+                <p className="text-[10px] text-accent-indigo font-semibold truncate">
+                  {roleLabel}
                 </p>
               </motion.div>
             )}

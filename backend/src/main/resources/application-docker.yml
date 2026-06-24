@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/nexushr}
     username: ${SPRING_DATASOURCE_USERNAME:nexushr}
-    password: ${SPRING_DATASOURCE_PASSWORD:nexushr_secret_2025}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -20,10 +20,10 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:nexushr-super-secret-jwt-key-for-production-2025}
+    secret: ${JWT_SECRET}
     expiration: 86400000
   cors:
-    allowed-origins: http://localhost:3000,http://frontend:80
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://frontend:80}
 
 server:
   port: 8080

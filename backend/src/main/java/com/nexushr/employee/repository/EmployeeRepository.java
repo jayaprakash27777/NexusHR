@@ -62,6 +62,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
             @Param("status") EmployeeStatus status,
             Pageable pageable);
 
+    List<Employee> findTop5ByOrderByJoiningDateDesc();
+
+    List<Employee> findTop5ByStatusOrderByUpdatedAtDesc(EmployeeStatus status);
+
+    List<Employee> findTop5ByStatusAndJoiningDateAfterOrderByJoiningDateDesc(EmployeeStatus status, java.time.LocalDate date);
+
     @Query(value = "SELECT nextval('employee_id_seq')", nativeQuery = true)
     Long getNextEmployeeIdSequence();
 }

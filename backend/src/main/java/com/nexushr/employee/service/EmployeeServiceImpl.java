@@ -40,6 +40,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Set;
@@ -99,9 +102,16 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .lastName(request.getLastName())
                 .email(request.getEmail().toLowerCase())
                 .phone(request.getPhone())
+                .avatarUrl(request.getAvatarUrl())
                 .dateOfBirth(request.getDateOfBirth())
                 .gender(request.getGender())
                 .address(request.getAddress())
+                .permanentAddress(request.getPermanentAddress())
+                .employmentType(request.getEmploymentType() != null ? request.getEmploymentType() : com.nexushr.employee.model.EmploymentType.FULL_TIME)
+                .panNumber(request.getPanNumber())
+                .pfNumber(request.getPfNumber())
+                .esiNumber(request.getEsiNumber())
+                .uanNumber(request.getUanNumber())
                 .department(department)
                 .designation(request.getDesignation())
                 .salary(request.getSalary() != null ? request.getSalary() : java.math.BigDecimal.ZERO)
@@ -125,6 +135,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (request.getFirstName() != null) employee.setFirstName(request.getFirstName());
         if (request.getLastName() != null) employee.setLastName(request.getLastName());
         if (request.getPhone() != null) employee.setPhone(request.getPhone());
+        if (request.getAvatarUrl() != null) employee.setAvatarUrl(request.getAvatarUrl());
         if (request.getDateOfBirth() != null) employee.setDateOfBirth(request.getDateOfBirth());
         if (request.getGender() != null) employee.setGender(request.getGender());
         if (request.getAddress() != null) employee.setAddress(request.getAddress());
@@ -151,6 +162,22 @@ public class EmployeeServiceImpl implements EmployeeService {
         log.info("Employee updated: {} ({})", updated.getFullName(), updated.getEmployeeId());
 
         return ApiResponse.success("Employee updated successfully", mapToResponse(updated));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<EmployeeResponse> uploadAvatar(UUID id, MultipartFile file) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", id));
+
+        String directory = "employees/" + id + "/avatar";
+        String fileName = fileStorageService.storeFile(file, directory);
+        
+        employee.setAvatarUrl("/api/employees/" + id + "/avatar/download?fileName=" + fileName);
+        Employee updated = employeeRepository.save(employee);
+        
+        log.info("Employee avatar updated: {}", employee.getEmployeeId());
+        return ApiResponse.success("Avatar uploaded successfully", mapToResponse(updated));
     }
 
     @Override
@@ -415,8 +442,29 @@ public class EmployeeServiceImpl implements EmployeeService {
             return userRepository.findByEmail(request.getEmail()).orElse(null);
         }
 
-        Role employeeRole = roleRepository.findByName("ROLE_EMPLOYEE")
-                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "ROLE_EMPLOYEE"));
+        String targetRoleName = request.getRoleName() != null ? request.getRoleName() : "ROLE_EMPLOYEE";
+
+        // RBAC Matrix Validation
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isSuperAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isHrDirector = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_HR_DIRECTOR"));
+        boolean isHrExecutive = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_HR_EXECUTIVE"));
+
+        if (!isSuperAdmin) {
+            if (isAdmin && targetRoleName.equals("ROLE_SUPER_ADMIN")) {
+                throw new AccessDeniedException("ADMIN cannot create SUPER_ADMIN accounts");
+            } else if (isHrDirector && !(targetRoleName.equals("ROLE_EMPLOYEE") || targetRoleName.equals("ROLE_HR_EXECUTIVE") || targetRoleName.equals("ROLE_TEAM_LEAD"))) {
+                throw new AccessDeniedException("HR_DIRECTOR can only create EMPLOYEE, HR_EXECUTIVE, or TEAM_LEAD accounts");
+            } else if (isHrExecutive && !targetRoleName.equals("ROLE_EMPLOYEE")) {
+                throw new AccessDeniedException("HR_EXECUTIVE can only create EMPLOYEE accounts");
+            } else if (!isAdmin && !isHrDirector && !isHrExecutive) {
+                throw new AccessDeniedException("You do not have permission to create user accounts");
+            }
+        }
+
+        Role employeeRole = roleRepository.findByName(targetRoleName)
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", targetRoleName));
 
         // Default password: first name + @123 (user should change on first login)
         String defaultPassword = request.getFirstName().toLowerCase() + "@123";
@@ -439,7 +487,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         user.getUserRoles().add(userRole);
 
         User saved = userRepository.save(user);
-        log.info("User account created for employee: {}", saved.getEmail());
+        log.info("User account created for employee: {} with role: {}", saved.getEmail(), targetRoleName);
         return saved;
     }
 
@@ -451,10 +499,19 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .lastName(employee.getLastName())
                 .fullName(employee.getFullName())
                 .email(employee.getEmail())
+                .avatarUrl(employee.getAvatarUrl())
                 .phone(employee.getPhone())
                 .dateOfBirth(employee.getDateOfBirth())
                 .gender(employee.getGender())
                 .address(employee.getAddress())
+                .permanentAddress(employee.getPermanentAddress())
+                .employmentType(employee.getEmploymentType())
+                .panNumber(employee.getPanNumber())
+                .pfNumber(employee.getPfNumber())
+                .esiNumber(employee.getEsiNumber())
+                .uanNumber(employee.getUanNumber())
+                .bankName(employee.getBankName())
+                .bankAccountNumber(employee.getBankAccountNumber())
                 .departmentId(employee.getDepartment() != null ? employee.getDepartment().getId() : null)
                 .departmentName(employee.getDepartment() != null ? employee.getDepartment().getName() : null)
                 .departmentCode(employee.getDepartment() != null ? employee.getDepartment().getCode() : null)
@@ -465,6 +522,10 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .managerName(employee.getManager() != null ? employee.getManager().getFullName() : null)
                 .status(employee.getStatus())
                 .hasUserAccount(employee.getUser() != null)
+                .roles(employee.getUser() != null ? employee.getUser().getUserRoles().stream()
+                        .map(ur -> ur.getRole().getName()).collect(java.util.stream.Collectors.toList()) : null)
+                .mfaEnabled(employee.getUser() != null ? employee.getUser().isMfaEnabled() : false)
+                .lastLogin(employee.getUser() != null ? employee.getUser().getLastSeenAt() : null)
                 .createdAt(employee.getCreatedAt())
                 .updatedAt(employee.getUpdatedAt())
                 .build();

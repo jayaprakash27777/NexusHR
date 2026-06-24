@@ -37,6 +37,7 @@ public class SalaryStructureServiceImpl implements SalaryStructureService {
                 .hraPercentage(request.getHraPercentage())
                 .daPercentage(request.getDaPercentage())
                 .pfPercentage(request.getPfPercentage())
+                .esiPercentage(request.getEsiPercentage())
                 .otherAllowances(request.getOtherAllowances())
                 .active(request.isActive())
                 .build();
@@ -62,6 +63,7 @@ public class SalaryStructureServiceImpl implements SalaryStructureService {
         structure.setHraPercentage(request.getHraPercentage());
         structure.setDaPercentage(request.getDaPercentage());
         structure.setPfPercentage(request.getPfPercentage());
+        structure.setEsiPercentage(request.getEsiPercentage());
         structure.setOtherAllowances(request.getOtherAllowances());
         structure.setActive(request.isActive());
 
@@ -108,6 +110,7 @@ public class SalaryStructureServiceImpl implements SalaryStructureService {
                 .hraPercentage(s.getHraPercentage())
                 .daPercentage(s.getDaPercentage())
                 .pfPercentage(s.getPfPercentage())
+                .esiPercentage(s.getEsiPercentage())
                 .otherAllowances(s.getOtherAllowances())
                 .active(s.isActive())
                 .build();

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/auth/access")
+@RequestMapping("/auth/access")
 @RequiredArgsConstructor
 @Tag(name = "Access Preview", description = "Endpoints for previewing and debugging effective access")
 public class AccessController {

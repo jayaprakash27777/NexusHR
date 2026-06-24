@@ -16,6 +16,7 @@ public class SalaryStructureResponse {
     private BigDecimal hraPercentage;
     private BigDecimal daPercentage;
     private BigDecimal pfPercentage;
+    private BigDecimal esiPercentage;
     private BigDecimal otherAllowances;
     private boolean active;
 }

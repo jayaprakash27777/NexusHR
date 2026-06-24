@@ -39,6 +39,10 @@ public class SalaryStructure extends BaseEntity {
     @Builder.Default
     private BigDecimal pfPercentage = BigDecimal.ZERO;
 
+    @Column(name = "esi_percentage", nullable = false, precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal esiPercentage = BigDecimal.ZERO;
+
     @Column(name = "other_allowances", nullable = false, precision = 15, scale = 2)
     @Builder.Default
     private BigDecimal otherAllowances = BigDecimal.ZERO;

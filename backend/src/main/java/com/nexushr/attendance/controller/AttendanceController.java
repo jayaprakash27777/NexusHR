@@ -77,9 +77,18 @@ public class AttendanceController {
 
     @GetMapping("/daily-report")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Daily report", description = "Get attendance for all employees on a specific date (Admin/Manager)")
+    @Operation(summary = "Daily report", description = "Get all attendance records for a specific date")
     public ResponseEntity<ApiResponse<List<AttendanceResponse>>> getDailyReport(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(attendanceService.getDailyReport(date));
+    }
+
+    @PatchMapping("/{id}/correct")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Correct attendance", description = "Correct an attendance record (Admin/Manager)")
+    public ResponseEntity<ApiResponse<AttendanceResponse>> correctAttendance(
+            @PathVariable UUID id,
+            @RequestBody com.nexushr.attendance.dto.AttendanceCorrectionRequest request) {
+        return ResponseEntity.ok(attendanceService.correctAttendance(id, request));
     }
 }

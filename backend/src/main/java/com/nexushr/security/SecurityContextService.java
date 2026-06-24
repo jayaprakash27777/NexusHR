@@ -65,8 +65,8 @@ public class SecurityContextService {
             return false;
         }
 
-        // Global override for SYSTEM_ADMIN and ROLE_ADMIN
-        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("SYSTEM_ADMIN"))) {
+        // Global override for SYSTEM_ADMIN, ROLE_ADMIN, and ROLE_SUPER_ADMIN
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("SYSTEM_ADMIN") || a.getAuthority().equals("ROLE_SUPER_ADMIN"))) {
             return true;
         }
 

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/auth/approval-matrix")
+@RequestMapping("/auth/approval-matrix")
 @RequiredArgsConstructor
 @Tag(name = "Approval Matrix Management", description = "Endpoints for configuring multi-level approval workflows")
 public class ApprovalMatrixController {

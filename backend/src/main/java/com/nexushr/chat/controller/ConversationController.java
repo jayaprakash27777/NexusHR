@@ -20,7 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @RestController
-@RequestMapping("/api/v1/chat/conversations")
+@RequestMapping("/chat/conversations")
 @RequiredArgsConstructor
 public class ConversationController {
 

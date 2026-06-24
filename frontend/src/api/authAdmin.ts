@@ -8,6 +8,7 @@ export interface RoleDto {
   parentRoleId: number | null
   parentRoleName: string | null
   isSystem: boolean
+  permissions: PermissionDto[]
   createdAt: string
   updatedAt: string
 }
@@ -114,6 +115,12 @@ export const authAdminApi = {
   revokePermissionFromRole: async (roleId: number, permissionId: string) => {
     await api.delete(`/auth/roles/${roleId}/permissions/${permissionId}`)
   },
+  assignRoleToUser: async (roleId: number, userId: string) => {
+    await api.post(`/auth/roles/${roleId}/users/${userId}`)
+  },
+  revokeRoleFromUser: async (roleId: number, userId: string) => {
+    await api.delete(`/auth/roles/${roleId}/users/${userId}`)
+  },
 
   // Permissions
   getPermissions: async (category?: string, page = 0, size = 100) => {
@@ -161,5 +168,21 @@ export const authAdminApi = {
   getAccessPreview: async (userId: string) => {
     const res = await api.get<ApiResponse<AccessPreviewDto>>(`/auth/access/preview/${userId}`)
     return res.data.data
+  },
+
+  // User Admin
+  toggleUserAccess: async (userId: string, active: boolean) => {
+    const res = await api.patch<ApiResponse<boolean>>(`/admin/users/${userId}/access`, { active })
+    return res.data.data
+  },
+  forceChangePassword: async (userId: string, newPassword: string) => {
+    await api.patch(`/admin/users/${userId}/password`, { newPassword })
+  },
+  toggleMfa: async (userId: string, enabled: boolean) => {
+    const res = await api.patch<ApiResponse<boolean>>(`/admin/users/${userId}/mfa`, { enabled })
+    return res.data.data
+  },
+  forceLogout: async (userId: string) => {
+    await api.post(`/admin/users/${userId}/logout`)
   }
 }

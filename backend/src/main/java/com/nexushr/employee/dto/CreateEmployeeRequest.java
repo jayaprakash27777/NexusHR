@@ -1,6 +1,7 @@
 package com.nexushr.employee.dto;
 
 import jakarta.validation.constraints.*;
+import com.nexushr.employee.model.EmploymentType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,8 +29,10 @@ public class CreateEmployeeRequest {
     @Email(message = "Please provide a valid email address")
     private String email;
 
-    @Size(max = 20, message = "Phone must not exceed 20 characters")
+    @Size(max = 20, message = "Phone cannot exceed 20 characters")
     private String phone;
+
+    private String avatarUrl;
 
     private LocalDate dateOfBirth;
 
@@ -38,6 +41,11 @@ public class CreateEmployeeRequest {
 
     @Size(max = 1000)
     private String address;
+
+    @Size(max = 1000)
+    private String permanentAddress;
+
+    private EmploymentType employmentType;
 
     private UUID departmentId;
 
@@ -53,4 +61,19 @@ public class CreateEmployeeRequest {
     private UUID managerId;
 
     private boolean createUserAccount;
+
+    @Size(max = 50)
+    private String roleName;
+
+    @Size(max = 20)
+    private String panNumber;
+
+    @Size(max = 50)
+    private String pfNumber;
+
+    @Size(max = 50)
+    private String esiNumber;
+
+    @Size(max = 20)
+    private String uanNumber;
 }

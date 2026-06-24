@@ -40,7 +40,7 @@ public class AiInsightServiceImpl implements AiInsightService {
     private final DepartmentRepository departmentRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final PerformanceReviewRepository reviewRepository;
-    private final AiProvider aiProvider;
+    private final RuleBasedAnalyticsEngine analyticsEngine;
 
     @Override
     @Transactional(readOnly = true)
@@ -121,8 +121,7 @@ public class AiInsightServiceImpl implements AiInsightService {
         List<AiInsight> generatedInsights = new ArrayList<>();
 
         // 1. Workforce summary insight
-        String summaryPrompt = "Generate a workforce health summary for an organization";
-        String summaryText = aiProvider.generateInsight(summaryPrompt);
+        String summaryText = analyticsEngine.generateWorkforceSummary();
         generatedInsights.add(createAndSaveInsight(
                 InsightType.WORKFORCE_SUMMARY, "Workforce Health Summary",
                 summaryText, InsightPriority.MEDIUM, null, null, true));
@@ -132,8 +131,7 @@ public class AiInsightServiceImpl implements AiInsightService {
         for (Department dept : departments) {
             long empCount = departmentRepository.countActiveEmployees(dept.getId());
             if (empCount > 0) {
-                String deptPrompt = "Generate department insight for " + dept.getName() + " with " + empCount + " employees";
-                String deptInsight = aiProvider.generateInsight(deptPrompt);
+                String deptInsight = analyticsEngine.generateDepartmentInsight(dept, empCount);
                 generatedInsights.add(createAndSaveInsight(
                         InsightType.DEPARTMENT_INSIGHT,
                         dept.getName() + " Department Analysis",
@@ -142,10 +140,9 @@ public class AiInsightServiceImpl implements AiInsightService {
         }
 
         // 3. Recommendations
-        String recPrompt = "Recommend HR actions to improve employee engagement";
-        String recText = aiProvider.generateInsight(recPrompt);
+        String recText = analyticsEngine.generateRecommendations();
         generatedInsights.add(createAndSaveInsight(
-                InsightType.RECOMMENDATION, "AI Recommendation",
+                InsightType.RECOMMENDATION, "Analytics Recommendation",
                 recText, InsightPriority.MEDIUM, null, null, true));
 
         // 4. Attrition risk for random sample of employees
@@ -157,13 +154,14 @@ public class AiInsightServiceImpl implements AiInsightService {
         Collections.shuffle(activeEmployees);
         for (int i = 0; i < sampleSize; i++) {
             Employee emp = activeEmployees.get(i);
-            double risk = aiProvider.predictAttritionRisk("{}");
+            RuleBasedAnalyticsEngine.AttritionRiskResult riskResult = analyticsEngine.calculateAttritionRisk(emp);
+            double risk = riskResult.score;
             InsightPriority priority = risk > 0.6 ? InsightPriority.HIGH
                     : risk > 0.4 ? InsightPriority.MEDIUM : InsightPriority.LOW;
             String riskText = String.format(
-                    "Attrition risk score for %s (%s): %.0f%%. %s",
+                    "Attrition risk score for %s (%s): %.0f%%.\n\n%s",
                     emp.getFullName(), emp.getEmployeeId(), risk * 100,
-                    aiProvider.generateInsight("attrition risk detail for employee"));
+                    riskResult.detail);
             generatedInsights.add(createAndSaveInsight(
                     InsightType.ATTRITION_RISK,
                     "Attrition Risk: " + emp.getFullName(),
@@ -173,8 +171,8 @@ public class AiInsightServiceImpl implements AiInsightService {
         List<AiInsightResponse> responses = generatedInsights.stream()
                 .map(this::mapToResponse).collect(Collectors.toList());
 
-        log.info("Generated {} AI insights using {}", responses.size(), aiProvider.getProviderName());
-        return ApiResponse.success("Generated " + responses.size() + " insights using " + aiProvider.getProviderName(), responses);
+        log.info("Generated {} insights using RuleBasedAnalyticsEngine", responses.size());
+        return ApiResponse.success("Generated " + responses.size() + " insights", responses);
     }
 
     @Override
@@ -183,8 +181,9 @@ public class AiInsightServiceImpl implements AiInsightService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", employeeId));
 
-        double risk = aiProvider.predictAttritionRisk("{}");
-        String detail = aiProvider.generateInsight("attrition risk for " + employee.getFullName());
+        RuleBasedAnalyticsEngine.AttritionRiskResult riskResult = analyticsEngine.calculateAttritionRisk(employee);
+        double risk = riskResult.score;
+        String detail = riskResult.detail;
         InsightPriority priority = risk > 0.6 ? InsightPriority.HIGH
                 : risk > 0.4 ? InsightPriority.MEDIUM : InsightPriority.LOW;
 
@@ -253,7 +252,7 @@ public class AiInsightServiceImpl implements AiInsightService {
 
     @Override
     public ApiResponse<String> getAiProviderInfo() {
-        return ApiResponse.success("AI Provider: " + aiProvider.getProviderName(), aiProvider.getProviderName());
+        return ApiResponse.success("AI Provider: Internal Analytics Engine", "Internal Analytics Engine");
     }
 
     private AiInsight createAndSaveInsight(InsightType type, String title, String description,

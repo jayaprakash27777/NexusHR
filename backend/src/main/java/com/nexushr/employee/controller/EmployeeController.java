@@ -9,6 +9,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import com.nexushr.common.export.ExcelExportService;
+import com.nexushr.common.storage.FileStorageService;
 
 import java.util.UUID;
 import java.util.List;
@@ -35,10 +37,11 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
     private final ExcelExportService excelExportService;
+    private final FileStorageService fileStorageService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create employee", description = "Creates a new employee record (Admin only)")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR_DIRECTOR', 'HR_EXECUTIVE')")
+    @Operation(summary = "Create employee", description = "Creates a new employee record (Admin and HR)")
     public ResponseEntity<ApiResponse<EmployeeResponse>> create(
             @Valid @RequestBody CreateEmployeeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.create(request));
@@ -53,7 +56,43 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.update(id, request));
     }
 
+    @PostMapping(value = "/{id}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload avatar", description = "Upload a profile picture for the employee")
+    public ResponseEntity<ApiResponse<EmployeeResponse>> uploadAvatar(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(employeeService.uploadAvatar(id, file));
+    }
+
+    @GetMapping("/{id}/avatar/download")
+    @Operation(summary = "Download avatar", description = "Get employee profile picture")
+    public ResponseEntity<Resource> downloadAvatar(
+            @PathVariable UUID id,
+            @RequestParam("fileName") String fileName) {
+        String directory = "employees/" + id + "/avatar";
+        try {
+            Path filePath = fileStorageService.loadFileAsResource(fileName, directory);
+            Resource resource = new org.springframework.core.io.UrlResource(filePath.toUri());
+            
+            if (resource.exists()) {
+                String contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER') or @employeeSecurity.isSelf(#id, authentication)")
     @Operation(summary = "Get employee by UUID")
     public ResponseEntity<ApiResponse<EmployeeResponse>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(employeeService.getById(id));
@@ -171,6 +210,7 @@ public class EmployeeController {
     // Phase 2: Deep Profile Endpoints
 
     @GetMapping("/{id}/history")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER') or @employeeSecurity.isSelf(#id, authentication)")
     @Operation(summary = "Get employment history")
     public ResponseEntity<ApiResponse<List<EmploymentHistoryDto>>> getEmploymentHistory(@PathVariable UUID id) {
         return ResponseEntity.ok(employeeService.getEmploymentHistory(id));
@@ -186,12 +226,14 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}/contacts")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER') or @employeeSecurity.isSelf(#id, authentication)")
     @Operation(summary = "Get emergency contacts")
     public ResponseEntity<ApiResponse<List<EmergencyContactDto>>> getEmergencyContacts(@PathVariable UUID id) {
         return ResponseEntity.ok(employeeService.getEmergencyContacts(id));
     }
 
     @PostMapping("/{id}/contacts")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR') or @employeeSecurity.isSelf(#id, authentication)")
     @Operation(summary = "Add emergency contact")
     public ResponseEntity<ApiResponse<EmergencyContactDto>> addEmergencyContact(
             @PathVariable UUID id,
@@ -200,12 +242,14 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}/documents")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER') or @employeeSecurity.isSelf(#id, authentication)")
     @Operation(summary = "Get employee documents")
     public ResponseEntity<ApiResponse<List<EmployeeDocumentDto>>> getEmployeeDocuments(@PathVariable UUID id) {
         return ResponseEntity.ok(employeeService.getEmployeeDocuments(id));
     }
 
     @PostMapping(value = "/{id}/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR') or @employeeSecurity.isSelf(#id, authentication)")
     @Operation(summary = "Upload employee document")
     public ResponseEntity<ApiResponse<EmployeeDocumentDto>> addEmployeeDocument(
             @PathVariable UUID id,
@@ -215,6 +259,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}/documents/{documentId}/download")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR', 'MANAGER') or @employeeSecurity.isSelf(#id, authentication)")
     @Operation(summary = "Download employee document")
     public ResponseEntity<Resource> downloadEmployeeDocument(
             @PathVariable UUID id,

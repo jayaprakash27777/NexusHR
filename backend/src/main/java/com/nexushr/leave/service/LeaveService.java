@@ -29,4 +29,8 @@ public interface LeaveService {
     PagedResponse<LeaveRequestResponse> getAllForManager(UUID managerId, int page, int size);
 
     ApiResponse<List<LeaveBalanceResponse>> getLeaveBalances(UUID employeeId, int year);
+
+    ApiResponse<LeaveBalanceResponse> grantCompOff(UUID employeeId, int days);
+
+    ApiResponse<Void> carryForwardLeaves(int year);
 }

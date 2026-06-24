@@ -8,6 +8,8 @@ import { useToastStore } from '@/store/toast'
 import PageTransition from '@/components/animation/PageTransition'
 import { useAuthStore } from '@/store'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
+import TeamLeaveCalendar from '@/components/leaves/TeamLeaveCalendar'
+import GrantCompOffModal from '@/components/leaves/GrantCompOffModal'
 
 const COLORS = {
   CASUAL_LEAVE: '#3b82f6',
@@ -139,7 +141,8 @@ export default function LeavesPage() {
   const { user } = useAuthStore()
   const { addToast } = useToastStore()
   const [showApplyModal, setShowApplyModal] = useState(false)
-  const [activeTab, setActiveTab] = useState<'MY_LEAVES' | 'TEAM_LEAVES'>('MY_LEAVES')
+  const [showCompOffModal, setShowCompOffModal] = useState(false)
+  const [activeTab, setActiveTab] = useState<'MY_LEAVES' | 'TEAM_LEAVES' | 'TEAM_CALENDAR'>('MY_LEAVES')
 
   const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN'
 
@@ -159,8 +162,8 @@ export default function LeavesPage() {
 
   // Fetch Leave Balances
   const { data: balances, isLoading: isLoadingBalances } = useQuery({
-    queryKey: ['leaves', 'balance', user?.employeeId],
-    queryFn: () => leavesApi.getLeaveBalances(user?.employeeId as string),
+    queryKey: ['leaves', 'balance', user?.employeeId, new Date().getFullYear()],
+    queryFn: () => leavesApi.getLeaveBalances(user?.employeeId as string, new Date().getFullYear()),
     enabled: !!user?.employeeId,
   })
 
@@ -215,14 +218,26 @@ export default function LeavesPage() {
           <h1 className="text-2xl font-bold tracking-tight text-nexus-50">Time Off Management</h1>
           <p className="text-sm text-nexus-400 mt-1">Review and manage leave requests</p>
         </div>
-        <motion.button 
-          onClick={() => setShowApplyModal(true)}
-          className="flex items-center gap-2 rounded-[var(--radius-lg)] bg-gradient-to-r from-accent-indigo to-accent-violet px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent-indigo/20" 
-          whileHover={{ scale: 1.02 }} 
-          whileTap={{ scale: 0.98 }}
-        >
-          <Plus className="h-4 w-4" /> Request Time Off
-        </motion.button>
+        <div className="flex items-center gap-3">
+          {isManager && (
+            <motion.button 
+              onClick={() => setShowCompOffModal(true)}
+              className="flex items-center gap-2 rounded-[var(--radius-lg)] bg-white/5 border border-white/10 hover:bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors" 
+              whileHover={{ scale: 1.02 }} 
+              whileTap={{ scale: 0.98 }}
+            >
+              Grant Comp-Off
+            </motion.button>
+          )}
+          <motion.button 
+            onClick={() => setShowApplyModal(true)}
+            className="flex items-center gap-2 rounded-[var(--radius-lg)] bg-gradient-to-r from-accent-indigo to-accent-violet px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent-indigo/20" 
+            whileHover={{ scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }}
+          >
+            <Plus className="h-4 w-4" /> Request Time Off
+          </motion.button>
+        </div>
       </div>
 
       {isManager && (
@@ -239,10 +254,18 @@ export default function LeavesPage() {
           >
             Team Approvals
           </button>
+          <button
+            onClick={() => setActiveTab('TEAM_CALENDAR')}
+            className={`pb-2 px-2 text-sm font-medium transition-colors border-b-2 ${activeTab === 'TEAM_CALENDAR' ? 'border-accent-indigo text-white' : 'border-transparent text-nexus-400 hover:text-nexus-200'}`}
+          >
+            Team Calendar
+          </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {activeTab !== 'TEAM_CALENDAR' && (
+        <>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           { label: 'Pending', value: pendingCount, color: 'text-warning' },
           { label: 'Approved', value: approvedCount, color: 'text-success' },
@@ -388,9 +411,16 @@ export default function LeavesPage() {
           </table>
         </div>
       </GlassCard>
+      </>
+      )}
+
+      {activeTab === 'TEAM_CALENDAR' && isManager && (
+        <TeamLeaveCalendar />
+      )}
 
       <AnimatePresence>
         {showApplyModal && <ApplyLeaveModal onClose={() => setShowApplyModal(false)} />}
+        {showCompOffModal && <GrantCompOffModal isOpen={showCompOffModal} onClose={() => setShowCompOffModal(false)} />}
       </AnimatePresence>
     </PageTransition>
   )

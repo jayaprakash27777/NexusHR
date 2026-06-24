@@ -44,10 +44,12 @@ export default function DashboardLayout() {
               <div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-accent-blue/[0.01] blur-[100px]" />
             </div>
 
-            <div className="relative z-10 p-6 lg:p-8 min-h-full">
-              <AnimatePresence mode="wait">
-                <Outlet key={location.pathname} />
-              </AnimatePresence>
+            <div className="relative z-10 p-6 lg:p-8 min-h-full flex flex-col">
+              <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
+                <AnimatePresence mode="wait">
+                  <Outlet key={location.pathname} />
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>

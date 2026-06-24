@@ -51,4 +51,15 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
             @Param("end") LocalDate endDate);
 
     boolean existsByEmployeeIdAndDate(UUID employeeId, LocalDate date);
+
+    @Query("SELECT COUNT(a) FROM Attendance a WHERE a.date BETWEEN :start AND :end AND a.status IN :statuses")
+    long countByDateRangeAndStatusIn(
+            @Param("start") LocalDate startDate,
+            @Param("end") LocalDate endDate,
+            @Param("statuses") List<AttendanceStatus> statuses);
+
+    @Query("SELECT COUNT(a) FROM Attendance a WHERE a.date BETWEEN :start AND :end")
+    long countByDateRange(
+            @Param("start") LocalDate startDate,
+            @Param("end") LocalDate endDate);
 }

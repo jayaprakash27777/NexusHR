@@ -7,12 +7,17 @@ import com.nexushr.attendance.model.AttendanceStatus;
 import com.nexushr.attendance.repository.AttendanceRepository;
 import com.nexushr.common.dto.ApiResponse;
 import com.nexushr.common.exception.ResourceNotFoundException;
+import com.nexushr.employee.repository.EmployeeDocumentRepository;
 import com.nexushr.dashboard.dto.AdminDashboardResponse;
 import com.nexushr.dashboard.dto.AdminDashboardResponse.MonthlyTrend;
 import com.nexushr.dashboard.dto.EmployeeDashboardResponse;
-import com.nexushr.dashboard.dto.EmployeeDashboardResponse.LeaveBalanceSummary;
 import com.nexushr.dashboard.dto.ManagerDashboardResponse;
 import com.nexushr.dashboard.dto.ManagerDashboardResponse.TeamMemberSummary;
+import com.nexushr.dashboard.dto.EmployeeDashboardResponse.LeaveBalanceSummary;
+import com.nexushr.dashboard.dto.HRDashboardResponse;
+import com.nexushr.dashboard.dto.FinanceDashboardResponse;
+import com.nexushr.dashboard.dto.ExecutiveDashboardResponse;
+import com.nexushr.dashboard.dto.AuditorDashboardResponse;
 import com.nexushr.department.repository.DepartmentRepository;
 import com.nexushr.employee.model.Employee;
 import com.nexushr.employee.model.EmployeeStatus;
@@ -56,6 +61,10 @@ public class DashboardServiceImpl implements DashboardService {
     private final PerformanceGoalRepository goalRepository;
     private final AiInsightRepository insightRepository;
     private final NotificationRepository notificationRepository;
+    private final EmployeeDocumentRepository employeeDocumentRepository;
+    private final com.nexushr.auth.repository.UserRepository userRepository;
+    private final com.nexushr.auth.repository.LoginHistoryRepository loginHistoryRepository;
+    private final com.nexushr.auth.repository.RefreshTokenRepository refreshTokenRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -109,16 +118,56 @@ public class DashboardServiceImpl implements DashboardService {
         Map<String, Long> byStatus = allEmployees.stream()
                 .collect(Collectors.groupingBy(e -> e.getStatus().name(), Collectors.counting()));
 
-        // Monthly trends (last 6 months simulated)
+        // Real Historical Trends (last 6 months)
         List<MonthlyTrend> attendanceTrend = new ArrayList<>();
         List<MonthlyTrend> payrollTrend = new ArrayList<>();
         for (int i = 5; i >= 0; i--) {
             YearMonth ym = YearMonth.now().minusMonths(i);
             String monthName = ym.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-            attendanceTrend.add(MonthlyTrend.builder().month(monthName).value(85 + Math.random() * 10).build());
+            
+            LocalDate startOfMonth = ym.atDay(1);
+            LocalDate endOfMonth = ym.atEndOfMonth();
+            long totalRecords = attendanceRepository.countByDateRange(startOfMonth, endOfMonth);
+            long presentRecords = attendanceRepository.countByDateRangeAndStatusIn(startOfMonth, endOfMonth, List.of(AttendanceStatus.PRESENT));
+            
+            double rate = totalRecords > 0 ? (double) presentRecords / totalRecords * 100.0 : 0.0;
+            attendanceTrend.add(MonthlyTrend.builder().month(monthName).value(Math.round(rate * 100.0) / 100.0).build());
+            
             BigDecimal mp = payrollRepository.totalPayrollForMonth(ym.getMonthValue(), ym.getYear());
             payrollTrend.add(MonthlyTrend.builder().month(monthName).value(mp.doubleValue()).build());
         }
+
+        // Real Data Metrics
+        long approvedLeaves = 0;
+        long unreadNotifs = notificationRepository.countByRecipientIdAndReadFalse(org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() != null 
+                ? ((com.nexushr.auth.model.User) org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId() : UUID.randomUUID()); // safe fallback
+
+        // Fetch employee lists
+        java.util.function.Function<Employee, AdminDashboardResponse.EmployeeSummaryDto> mapToDto = emp -> 
+            AdminDashboardResponse.EmployeeSummaryDto.builder()
+                .id(emp.getId().toString())
+                .employeeId(emp.getEmployeeId())
+                .name(emp.getFullName())
+                .email(emp.getEmail())
+                .department(emp.getDepartment() != null ? emp.getDepartment().getName() : "N/A")
+                .designation(emp.getDesignation())
+                .joiningDate(emp.getJoiningDate() != null ? emp.getJoiningDate().toString() : "N/A")
+                .status(emp.getStatus().name())
+                .build();
+
+        List<AdminDashboardResponse.EmployeeSummaryDto> recentlyJoined = employeeRepository.findTop5ByOrderByJoiningDateDesc()
+            .stream().map(mapToDto).collect(Collectors.toList());
+            
+        List<AdminDashboardResponse.EmployeeSummaryDto> recentlyResigned = employeeRepository.findTop5ByStatusOrderByUpdatedAtDesc(EmployeeStatus.TERMINATED)
+            .stream().map(mapToDto).collect(Collectors.toList());
+
+        List<AdminDashboardResponse.EmployeeSummaryDto> onProbation = employeeRepository.findTop5ByStatusAndJoiningDateAfterOrderByJoiningDateDesc(
+            EmployeeStatus.ACTIVE, today.minusMonths(6))
+            .stream().map(mapToDto).collect(Collectors.toList());
+
+        long activeSessions = refreshTokenRepository.countByRevokedFalseAndExpiresAtAfter(java.time.Instant.now());
+        long failedLoginAttempts = loginHistoryRepository.countByStatus("FAILED");
+        long lockedAccounts = userRepository.countByActiveFalse();
 
         AdminDashboardResponse dashboard = AdminDashboardResponse.builder()
                 .totalEmployees(total)
@@ -130,7 +179,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .absentToday(Math.max(0, active - presentToday))
                 .attendanceRateToday(Math.round(attendanceRate * 100.0) / 100.0)
                 .pendingLeaveRequests(pendingLeaves)
-                .approvedLeavesToday(0)
+                .approvedLeavesToday(approvedLeaves)
                 .currentMonthPayroll(monthlyPayroll)
                 .payrollsPending(payrollDraft)
                 .payrollsPaid(payrollPaid)
@@ -138,11 +187,17 @@ public class DashboardServiceImpl implements DashboardService {
                 .averagePerformanceRating(avgRating != null ? avgRating : 0.0)
                 .activeInsights(activeInsights)
                 .criticalInsights(criticalInsights)
-                .unreadNotifications(0)
+                .unreadNotifications(unreadNotifs)
                 .employeesByDepartment(byDept)
                 .employeesByStatus(byStatus)
                 .attendanceTrend(attendanceTrend)
                 .payrollTrend(payrollTrend)
+                .recentlyJoinedEmployees(recentlyJoined)
+                .recentlyResignedEmployees(recentlyResigned)
+                .employeesOnProbation(onProbation)
+                .activeSessions(activeSessions)
+                .failedLoginAttempts(failedLoginAttempts)
+                .lockedAccounts(lockedAccounts)
                 .build();
 
         return ApiResponse.success(dashboard);
@@ -282,8 +337,38 @@ public class DashboardServiceImpl implements DashboardService {
         long completedGoals = goalRepository.countByEmployeeIdAndStatus(employeeId, GoalStatus.COMPLETED);
 
         // Notifications
-        // We need the user ID from auth module; for now use employee's associated user
         long unreadNotifs = 0;
+        if (employee.getUser() != null) {
+            unreadNotifs = notificationRepository.countByRecipientIdAndReadFalse(employee.getUser().getId());
+        }
+
+        List<EmployeeDashboardResponse.DocumentDto> recentDocuments = employeeDocumentRepository.findByEmployeeIdOrderByUploadDateDesc(employeeId).stream()
+            .limit(5)
+            .map(doc -> EmployeeDashboardResponse.DocumentDto.builder()
+                .name(doc.getFileName())
+                .date(doc.getUploadDate().toLocalDate().toString())
+                .type(doc.getDocumentType())
+                .build())
+            .collect(Collectors.toList());
+
+        List<EmployeeDashboardResponse.GoalDto> upcomingGoalsList = goalRepository.findByEmployeeIdOrderByCreatedAtDesc(employeeId).stream()
+            .filter(g -> g.getStatus() == GoalStatus.IN_PROGRESS || g.getStatus() == GoalStatus.NOT_STARTED)
+            .limit(5)
+            .map(g -> EmployeeDashboardResponse.GoalDto.builder()
+                .title(g.getTitle())
+                .dueDate(g.getDueDate() != null ? g.getDueDate().toString() : "N/A")
+                .progress(g.getStatus() == GoalStatus.COMPLETED ? "100%" : (g.getStatus() == GoalStatus.IN_PROGRESS ? "50%" : "0%"))
+                .build())
+            .collect(Collectors.toList());
+
+        Map<String, Double> attendanceTrend = new LinkedHashMap<>();
+        for (int i = 3; i >= 0; i--) {
+            LocalDate startOfWeek = today.minusWeeks(i).with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+            LocalDate endOfWeek = startOfWeek.plusDays(4);
+            long presents = attendanceRepository.countByEmployeeAndDateRangeAndStatus(employeeId, startOfWeek, endOfWeek, AttendanceStatus.PRESENT);
+            double rate = (presents / 5.0) * 100.0;
+            attendanceTrend.put("Week " + startOfWeek.get(java.time.temporal.WeekFields.ISO.weekOfWeekBasedYear()), Math.min(100.0, rate));
+        }
 
         EmployeeDashboardResponse dashboard = EmployeeDashboardResponse.builder()
                 .employeeId(employee.getEmployeeId())
@@ -305,8 +390,35 @@ public class DashboardServiceImpl implements DashboardService {
                 .activeGoals(activeGoals)
                 .completedGoals(completedGoals)
                 .unreadNotifications(unreadNotifs)
+                .recentDocuments(recentDocuments)
+                .upcomingGoals(upcomingGoalsList)
+                .attendanceTrend(attendanceTrend)
                 .build();
 
         return ApiResponse.success(dashboard);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<HRDashboardResponse> getHRDashboard() {
+        return ApiResponse.success(HRDashboardResponse.builder().build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<FinanceDashboardResponse> getFinanceDashboard() {
+        return ApiResponse.success(FinanceDashboardResponse.builder().build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<ExecutiveDashboardResponse> getExecutiveDashboard() {
+        return ApiResponse.success(ExecutiveDashboardResponse.builder().build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse<AuditorDashboardResponse> getAuditorDashboard() {
+        return ApiResponse.success(AuditorDashboardResponse.builder().build());
     }
 }

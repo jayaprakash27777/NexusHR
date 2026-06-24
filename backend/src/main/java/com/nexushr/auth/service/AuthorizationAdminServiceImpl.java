@@ -368,6 +368,9 @@ public class AuthorizationAdminServiceImpl implements AuthorizationAdminService 
                 .parentRoleId(role.getParentRole() != null ? role.getParentRole().getId() : null)
                 .parentRoleName(role.getParentRole() != null ? role.getParentRole().getName() : null)
                 .isSystem(role.isSystem())
+                .permissions(role.getRolePermissions().stream()
+                        .map(rp -> mapToPermissionDto(rp.getPermission()))
+                        .collect(Collectors.toList()))
                 .createdAt(role.getCreatedAt())
                 .updatedAt(role.getUpdatedAt())
                 .build();

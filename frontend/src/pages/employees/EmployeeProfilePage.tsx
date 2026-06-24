@@ -6,16 +6,29 @@ import { employeesApi } from '@/api/employees'
 import PageTransition from '@/components/animation/PageTransition'
 import GlassCard from '@/components/ui/GlassCard'
 import { toast } from '@/store/toast'
+import AddHistoryModal from '@/components/employee/AddHistoryModal'
+import AddContactModal from '@/components/employee/AddContactModal'
 import {
   ChevronLeft, User, Briefcase, FileText, Phone, Mail, 
-  MapPin, Calendar, Building, CreditCard, Download, Upload, Plus
+  MapPin, Calendar, Building, CreditCard, Download, Upload, Plus,
+  Clock, Activity, Shield
 } from 'lucide-react'
+import {
+  BasicInfoTab, EmploymentTab, AttendanceTab, LeavesTab,
+  PayrollTab, AddressTab, PerformanceTab, SecurityTab
+} from '@/components/employee/ProfileTabs'
 
 const TABS = [
-  { id: 'details', label: 'Personal Details', icon: User },
-  { id: 'history', label: 'Job History', icon: Briefcase },
-  { id: 'contacts', label: 'Emergency Contacts', icon: Phone },
+  { id: 'details', label: 'Basic Info', icon: User },
+  { id: 'employment', label: 'Employment', icon: Briefcase },
+  { id: 'attendance', label: 'Attendance', icon: Clock },
+  { id: 'leaves', label: 'Leaves', icon: Calendar },
+  { id: 'payroll', label: 'Payroll', icon: CreditCard },
   { id: 'documents', label: 'Documents', icon: FileText },
+  { id: 'contacts', label: 'Contacts', icon: Phone },
+  { id: 'address', label: 'Address', icon: MapPin },
+  { id: 'performance', label: 'Performance', icon: Activity },
+  { id: 'security', label: 'Security', icon: Shield },
 ]
 
 export default function EmployeeProfilePage() {
@@ -23,6 +36,8 @@ export default function EmployeeProfilePage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('details')
+  const [isAddHistoryOpen, setIsAddHistoryOpen] = useState(false)
+  const [isAddContactOpen, setIsAddContactOpen] = useState(false)
 
   const { data: employee, isLoading } = useQuery({
     queryKey: ['employee', id],
@@ -57,6 +72,21 @@ export default function EmployeeProfilePage() {
     onError: () => toast.error('Upload Failed', 'There was an error uploading the document.')
   })
 
+  const avatarUploadMutation = useMutation({
+    mutationFn: (file: File) => employeesApi.uploadAvatar(id!, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employee', id] })
+      toast.success('Avatar Uploaded', 'Profile picture updated successfully.')
+    },
+    onError: () => toast.error('Upload Failed', 'There was an error uploading the profile picture.')
+  })
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    avatarUploadMutation.mutate(file)
+  }
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -89,7 +119,7 @@ export default function EmployeeProfilePage() {
   const initials = employee.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
 
   return (
-    <PageTransition className="space-y-6 max-w-6xl mx-auto">
+    <PageTransition className="space-y-6 h-full flex flex-col">
       {/* Header Profile Card */}
       <div className="flex items-center gap-4 mb-2">
         <button 
@@ -108,8 +138,18 @@ export default function EmployeeProfilePage() {
         <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
           <div className="flex-shrink-0">
             <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-accent-indigo to-accent-violet p-0.5 shadow-lg shadow-accent-indigo/20">
-              <div className="h-full w-full rounded-2xl bg-nexus-900 flex items-center justify-center text-2xl font-bold text-white">
-                {initials}
+              <div className="h-full w-full rounded-2xl bg-nexus-900 flex items-center justify-center text-2xl font-bold text-white relative overflow-hidden group">
+                {employee.avatarUrl ? (
+                  <img src={employee.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  initials
+                )}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                  <label htmlFor="avatar-upload" className="cursor-pointer p-8">
+                    <Upload className="h-6 w-6 text-white" />
+                  </label>
+                  <input type="file" id="avatar-upload" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={avatarUploadMutation.isPending} />
+                </div>
               </div>
             </div>
           </div>
@@ -180,104 +220,23 @@ export default function EmployeeProfilePage() {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === 'details' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <GlassCard className="p-6 space-y-6">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <User className="h-5 w-5 text-accent-indigo" /> Personal Information
-                </h3>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-nexus-500 uppercase tracking-wider mb-1">Phone Number</p>
-                      <p className="text-sm text-nexus-100">{employee.phone || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-nexus-500 uppercase tracking-wider mb-1">Date of Birth</p>
-                      <p className="text-sm text-nexus-100">{employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString() : 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-nexus-500 uppercase tracking-wider mb-1">Gender</p>
-                      <p className="text-sm text-nexus-100">{employee.gender || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-nexus-500 uppercase tracking-wider mb-1">Address</p>
-                      <p className="text-sm text-nexus-100">{employee.address || 'Not provided'}</p>
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
-              
-              <GlassCard className="p-6 space-y-6">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-accent-indigo" /> Compensation & Role
-                </h3>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-nexus-500 uppercase tracking-wider mb-1">Employment Type</p>
-                      <p className="text-sm text-nexus-100">{employee.employmentType.replace('_', ' ')}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-nexus-500 uppercase tracking-wider mb-1">Manager</p>
-                      <p className="text-sm text-nexus-100">{employee.managerName || 'None'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-nexus-500 uppercase tracking-wider mb-1">Base Salary</p>
-                      <p className="text-sm text-nexus-100">{employee.salary ? `₹${employee.salary.toLocaleString()}` : 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
-            </div>
-          )}
-
-          {activeTab === 'history' && (
-            <GlassCard className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold text-white">Employment Timeline</h3>
-                <button className="text-sm flex items-center gap-1 text-accent-indigo hover:text-indigo-400">
-                  <Plus className="h-4 w-4" /> Add Record
-                </button>
-              </div>
-              
-              <div className="relative border-l border-white/10 ml-3 space-y-8 pb-4">
-                {history?.map((h) => (
-                  <div key={h.id} className="relative pl-6">
-                    <div className="absolute w-3 h-3 bg-accent-indigo rounded-full -left-1.5 top-1.5 ring-4 ring-nexus-900" />
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="text-nexus-50 font-medium">{h.newDesignation || 'Designation Change'}</h4>
-                          <p className="text-xs text-nexus-400">{h.departmentName || 'Department Change'}</p>
-                        </div>
-                        <span className="text-xs text-nexus-500">{new Date(h.effectiveDate).toLocaleDateString()}</span>
-                      </div>
-                      {h.changeReason && (
-                        <p className="text-sm text-nexus-300 mt-2">{h.changeReason}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                
-                {(!history || history.length === 0) && (
-                  <div className="pl-6 text-nexus-400 text-sm">No historical records found.</div>
-                )}
-                
-                <div className="relative pl-6">
-                  <div className="absolute w-3 h-3 bg-nexus-600 rounded-full -left-1.5 top-1.5 ring-4 ring-nexus-900" />
-                  <p className="text-sm text-nexus-400 pt-1">Hired as {employee.designation}</p>
-                  <p className="text-xs text-nexus-500">{new Date(employee.dateOfJoining).toLocaleDateString()}</p>
-                </div>
-              </div>
-            </GlassCard>
-          )}
+          {activeTab === 'details' && <BasicInfoTab employee={employee} />}
+          {activeTab === 'employment' && <EmploymentTab employee={employee} />}
+          {activeTab === 'attendance' && <AttendanceTab employeeId={id!} />}
+          {activeTab === 'leaves' && <LeavesTab employeeId={id!} />}
+          {activeTab === 'payroll' && <PayrollTab employee={employee} />}
+          {activeTab === 'address' && <AddressTab employee={employee} />}
+          {activeTab === 'performance' && <PerformanceTab employeeId={id!} />}
+          {activeTab === 'security' && <SecurityTab employee={employee} />}
 
           {activeTab === 'contacts' && (
             <GlassCard className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-semibold text-white">Emergency Contacts</h3>
-                <button className="text-sm flex items-center gap-1 text-accent-indigo hover:text-indigo-400">
+                <button 
+                  onClick={() => setIsAddContactOpen(true)}
+                  className="text-sm flex items-center gap-1 text-accent-indigo hover:text-indigo-400"
+                >
                   <Plus className="h-4 w-4" /> Add Contact
                 </button>
               </div>
@@ -387,6 +346,17 @@ export default function EmployeeProfilePage() {
           )}
         </motion.div>
       </AnimatePresence>
+
+      <AddHistoryModal 
+        isOpen={isAddHistoryOpen} 
+        onClose={() => setIsAddHistoryOpen(false)} 
+        employeeId={id!} 
+      />
+      <AddContactModal 
+        isOpen={isAddContactOpen} 
+        onClose={() => setIsAddContactOpen(false)} 
+        employeeId={id!} 
+      />
     </PageTransition>
   )
 }

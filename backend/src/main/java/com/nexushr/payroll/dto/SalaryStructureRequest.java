@@ -33,6 +33,11 @@ public class SalaryStructureRequest {
     @DecimalMax(value = "100.0", message = "PF percentage cannot exceed 100")
     private BigDecimal pfPercentage;
 
+    @NotNull(message = "ESI Percentage is required")
+    @DecimalMin(value = "0.0", message = "ESI percentage cannot be negative")
+    @DecimalMax(value = "100.0", message = "ESI percentage cannot exceed 100")
+    private BigDecimal esiPercentage;
+
     @NotNull(message = "Other allowances is required")
     @PositiveOrZero(message = "Other allowances must be zero or positive")
     private BigDecimal otherAllowances;

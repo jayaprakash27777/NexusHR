@@ -10,10 +10,11 @@ import BulkOperationsToolbar from '@/components/ui/BulkOperationsToolbar'
 import SmartEmptyState from '@/components/ui/SmartEmptyState'
 import PageTransition from '@/components/animation/PageTransition'
 import { employeesApi, type Employee, type CreateEmployeeRequest } from '@/api/employees'
+import OrgChartView from './OrgChartView'
 import { toast } from '@/store/toast'
 import {
   Users, Search, Plus, MoreHorizontal, Mail, Phone, Download,
-  ChevronLeft, ChevronRight, Loader2, X, AlertCircle, Grid, List
+  ChevronLeft, ChevronRight, Loader2, X, AlertCircle, Grid, List, Network
 } from 'lucide-react'
 import HasPermission from '@/components/auth/HasPermission'
 
@@ -296,7 +297,7 @@ export default function EmployeesPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [page, setPage] = useState(0)
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'org'>('table')
   const [showAddModal, setShowAddModal] = useState(false)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -306,7 +307,7 @@ export default function EmployeesPage() {
   // Build query params from filters
   const queryParams = {
     page,
-    size: 18,
+    size: viewMode === 'org' ? 1000 : 18,
     search: debouncedSearch || undefined,
     department: activeFilters['department']?.[0],
     status: activeFilters['status']?.[0],
@@ -470,6 +471,13 @@ export default function EmployeesPage() {
             >
               <Grid className="h-4 w-4" />
             </button>
+            <button
+              onClick={() => setViewMode('org')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'org' ? 'bg-foreground/10 text-foreground' : 'text-muted hover:text-secondary'}`}
+              aria-label="Org Chart View"
+            >
+              <Network className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -497,7 +505,9 @@ export default function EmployeesPage() {
         />
       ) : (
         <>
-          {viewMode === 'grid' ? (
+          {viewMode === 'org' ? (
+            <OrgChartView employees={employees} />
+          ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {employees.map((emp: Employee, i: number) => {
                 const isSelected = selectedIds.has(emp.id)

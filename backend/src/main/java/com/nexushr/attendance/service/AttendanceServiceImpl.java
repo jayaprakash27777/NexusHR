@@ -175,7 +175,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         long present = attendanceRepository.countByEmployeeAndDateRangeAndStatus(employeeId, start, end, AttendanceStatus.PRESENT);
         long absent = attendanceRepository.countByEmployeeAndDateRangeAndStatus(employeeId, start, end, AttendanceStatus.ABSENT);
         long halfDay = attendanceRepository.countByEmployeeAndDateRangeAndStatus(employeeId, start, end, AttendanceStatus.HALF_DAY);
-        long leave = attendanceRepository.countByEmployeeAndDateRangeAndStatus(employeeId, start, end, AttendanceStatus.LEAVE);
+        long leave = attendanceRepository.countByEmployeeAndDateRangeAndStatus(employeeId, start, end, AttendanceStatus.ON_LEAVE);
         double avgHours = attendanceRepository.avgWorkHoursByEmployeeAndDateRange(employeeId, start, end);
 
         // Calculate working days (exclude weekends)
@@ -209,6 +209,26 @@ public class AttendanceServiceImpl implements AttendanceService {
         List<AttendanceResponse> records = attendanceRepository.findByDateOrderByEmployeeFirstNameAsc(date)
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
         return ApiResponse.success(records);
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<AttendanceResponse> correctAttendance(UUID id, com.nexushr.attendance.dto.AttendanceCorrectionRequest request) {
+        Attendance attendance = attendanceRepository.findById(id)
+                .orElseThrow(() -> new com.nexushr.common.exception.ResourceNotFoundException("Attendance", "id", id));
+
+        if (request.getCheckInTime() != null) attendance.setCheckInTime(request.getCheckInTime());
+        if (request.getCheckOutTime() != null) attendance.setCheckOutTime(request.getCheckOutTime());
+        if (request.getStatus() != null) attendance.setStatus(request.getStatus());
+        if (request.getNotes() != null) attendance.setNotes(request.getNotes());
+
+        if (attendance.getCheckInTime() != null && attendance.getCheckOutTime() != null) {
+            long minutes = java.time.Duration.between(attendance.getCheckInTime(), attendance.getCheckOutTime()).toMinutes();
+            attendance.setWorkHours(java.math.BigDecimal.valueOf(minutes).divide(java.math.BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP));
+        }
+
+        Attendance saved = attendanceRepository.save(attendance);
+        return ApiResponse.success("Attendance record corrected successfully", mapToResponse(saved));
     }
 
     private AttendanceResponse mapToResponse(Attendance attendance) {

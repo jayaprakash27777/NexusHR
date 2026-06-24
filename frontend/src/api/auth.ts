@@ -10,7 +10,7 @@ export interface AuthUser {
   username: string
   email: string
   fullName: string
-  role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
+  role: string
   employeeId?: string
   avatar?: string
 }

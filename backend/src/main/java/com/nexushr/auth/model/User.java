@@ -50,6 +50,10 @@ public class User extends BaseEntity {
     @Builder.Default
     private boolean emailVerified = false;
 
+    @Column(name = "mfa_enabled", nullable = false)
+    @Builder.Default
+    private boolean mfaEnabled = false;
+
     @Column(name = "tenant_id")
     private java.util.UUID tenantId;
 

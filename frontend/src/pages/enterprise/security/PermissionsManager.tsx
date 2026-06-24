@@ -1,17 +1,21 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Shield, Search, Plus, Save, Users, Check, X, Lock } from 'lucide-react'
+import { Shield, Search, Plus, Save, Users, Check, X, Lock, UserPlus, Trash2 } from 'lucide-react'
 import PageTransition from '@/components/animation/PageTransition'
 import GlassCard from '@/components/ui/GlassCard'
 import { toast } from '@/store/toast'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { authAdminApi, RoleDto, PermissionDto } from '@/api/authAdmin'
+import { authAdminApi } from '@/api/authAdmin'
+import { employeesApi } from '@/api/employees'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 
 export default function PermissionsManager() {
   const queryClient = useQueryClient()
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [activeTab, setActiveTab] = useState<'permissions' | 'users'>('permissions')
+
+  const [employeeSearch, setEmployeeSearch] = useState('')
 
   const { data: rolesResponse, isLoading: loadingRoles } = useQuery({
     queryKey: ['admin-roles'],
@@ -28,17 +32,13 @@ export default function PermissionsManager() {
     queryFn: () => authAdminApi.getPermissionCategories()
   })
 
-  // To fetch actual assigned permissions for the selected role, we might need a separate call
-  // Or if role hierarchy endpoint returns it? The requirement doesn't show a 'getRolePermissions' endpoint.
-  // Wait, let's assume getRoles returns everything or we just assign. Actually, we should be able to see assigned perms.
-  // Let me look at the backend RoleDto.
+  // Employee search query for user assignment
+  const { data: employeesResponse } = useQuery({
+    queryKey: ['employees-search', employeeSearch],
+    queryFn: () => employeesApi.getAll({ search: employeeSearch, size: 5 }),
+    enabled: employeeSearch.length > 1
+  })
 
-  // NOTE: For demo/simplicity based on our API, we'll assume we can toggle directly. 
-  // Wait, backend doesn't return `rolePermissions` inside `RoleDto`.
-  // Actually, I can use getAccessPreview, but that's per User.
-  // If the backend doesn't return RolePermissions inside RoleDto, I might have a gap.
-  // Let's assume RoleDto has it, or we will just let user check what they want and blindly assign.
-  
   const assignPermissionMut = useMutation({
     mutationFn: (data: { roleId: number, permissionIds: string[] }) => authAdminApi.assignPermissionsToRole(data.roleId, { permissionIds: data.permissionIds }),
     onSuccess: () => {
@@ -55,6 +55,17 @@ export default function PermissionsManager() {
     }
   })
 
+  const assignRoleMut = useMutation({
+    mutationFn: (data: { roleId: number, userId: string }) => authAdminApi.assignRoleToUser(data.roleId, data.userId),
+    onSuccess: () => {
+      toast.success('Role Assigned', `User has been assigned to this role`)
+      setEmployeeSearch('')
+    },
+    onError: () => {
+      toast.error('Assignment Failed', 'Could not assign role to user.')
+    }
+  })
+
   if (loadingRoles || loadingPerms || loadingCats) {
     return <LoadingScreen />
   }
@@ -63,33 +74,25 @@ export default function PermissionsManager() {
   const allPermissions = permissionsResponse?.content || []
   const allCategories = categories || []
 
-  // Ensure selected role
   if (!selectedRoleId && roles.length > 0) {
     setSelectedRoleId(roles[0].id)
   }
 
   const activeRole = roles.find(r => r.id === selectedRoleId)
-
-  // Extract unique actions from permissions to build columns
   const allActions = Array.from(new Set(allPermissions.map(p => p.action)))
 
-  // We are missing the list of permissions currently assigned to the active role because RoleDto doesn't include it.
-  // For the sake of this UI, I will just mock `hasPermission` if the API doesn't return it.
   const hasPermission = (action: string, category: string) => {
-    // If backend doesn't expose it on RoleDto, this won't work perfectly.
-    // I will mock it to return false for now unless it's SUPER_ADMIN
-    if (activeRole?.name === 'SUPER_ADMIN') return true;
-    return false;
+    if (!activeRole) return false;
+    if (activeRole.name === 'SUPER_ADMIN') return true;
+    return activeRole.permissions?.some(p => p.action === action && p.category === category) || false;
   }
 
   const togglePermission = (action: string, category: string) => {
     if (!activeRole) return
-
     const permission = allPermissions.find(p => p.action === action && p.category === category)
     if (!permission) return
 
     const exists = hasPermission(action, category)
-    
     if (exists) {
       revokePermissionMut.mutate({ roleId: activeRole.id, permissionId: permission.id })
     } else {
@@ -98,33 +101,33 @@ export default function PermissionsManager() {
   }
 
   return (
-    <PageTransition className="space-y-6">
+    <PageTransition className="space-y-6 h-full flex flex-col">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-nexus-50 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Shield className="h-6 w-6 text-accent-indigo" />
-            Granular Permissions Engine
+            Permissions & Assignments
           </h1>
-          <p className="text-sm text-nexus-400 mt-1">Configure role-based access control and fine-grained action mapping.</p>
+          <p className="text-sm text-muted mt-1">Configure role-based access control and assign users to roles.</p>
         </div>
         <button className="flex items-center gap-2 rounded-lg bg-accent-indigo px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-500">
           <Plus className="h-4 w-4" /> Create Custom Role
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 flex-1">
         
         {/* Role Sidebar */}
         <div className="lg:w-1/3 xl:w-1/4 space-y-4">
           <GlassCard className="p-4 flex flex-col h-[calc(100vh-200px)]">
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-nexus-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
               <input
                 type="text"
                 placeholder="Search roles..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-10 w-full rounded-lg border border-white/10 bg-nexus-900/50 pl-10 pr-4 text-sm text-nexus-100 placeholder:text-nexus-500 focus:border-accent-indigo focus:outline-none"
+                className="h-10 w-full rounded-lg border border-border bg-surface pl-10 pr-4 text-sm text-foreground placeholder:text-muted focus:border-accent-indigo focus:outline-none"
               />
             </div>
 
@@ -138,91 +141,151 @@ export default function PermissionsManager() {
                   className={`w-full text-left p-3 rounded-lg border transition-all ${
                     selectedRoleId === role.id 
                       ? 'bg-accent-indigo/10 border-accent-indigo shadow-[0_0_15px_rgba(99,102,241,0.15)]' 
-                      : 'bg-white/5 border-transparent hover:bg-white/10'
+                      : 'bg-surface border-border hover:bg-surface-hover'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`font-semibold text-sm ${selectedRoleId === role.id ? 'text-accent-indigo' : 'text-nexus-100'}`}>
+                    <span className={`font-semibold text-sm ${selectedRoleId === role.id ? 'text-accent-indigo' : 'text-foreground'}`}>
                       {role.name}
                     </span>
                     {role.isSystem && (
-                      <Lock className="h-3 w-3 text-nexus-500" />
+                      <Lock className="h-3 w-3 text-muted" />
                     )}
                   </div>
-                  <p className="text-xs text-nexus-400 mt-1 line-clamp-2">{role.description}</p>
+                  <p className="text-xs text-muted mt-1 line-clamp-2">{role.description}</p>
                 </button>
               ))}
             </div>
           </GlassCard>
         </div>
 
-        {/* Matrix Area */}
+        {/* Matrix & Users Area */}
         <div className="flex-1">
           <GlassCard className="p-6 h-[calc(100vh-200px)] flex flex-col">
             {activeRole ? (
               <>
-                <div className="mb-6 flex items-center justify-between pb-6 border-b border-white/10">
+                <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-border gap-4">
                   <div>
-                    <h2 className="text-lg font-bold text-nexus-50 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                       {activeRole.name} 
-                      {activeRole.isSystem && <span className="rounded bg-nexus-800 px-2 py-0.5 text-[10px] font-mono text-nexus-400 border border-white/10">SYSTEM ROLE</span>}
+                      {activeRole.isSystem && <span className="rounded bg-surface-hover px-2 py-0.5 text-[10px] font-mono text-muted border border-border">SYSTEM ROLE</span>}
                     </h2>
-                    <p className="text-sm text-nexus-400 mt-1">{activeRole.description}</p>
+                    <p className="text-sm text-muted mt-1">{activeRole.description}</p>
+                  </div>
+
+                  {/* Tabs */}
+                  <div className="flex bg-surface border border-border rounded-lg p-1">
+                    <button
+                      onClick={() => setActiveTab('permissions')}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === 'permissions' ? 'bg-accent-indigo text-white' : 'text-muted hover:text-foreground'}`}
+                    >
+                      Permissions
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('users')}
+                      className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === 'users' ? 'bg-accent-indigo text-white' : 'text-muted hover:text-foreground'}`}
+                    >
+                      Assigned Users
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-auto pr-2 custom-scrollbar">
-                  <div className="min-w-[800px]">
-                    {/* Header Row */}
-                    <div className="grid grid-cols-7 gap-4 mb-4 pb-2 border-b border-white/5 sticky top-0 bg-nexus-900/90 backdrop-blur-md z-10 pt-2">
-                      <div className="col-span-1 text-xs font-semibold uppercase tracking-wider text-nexus-500">Resource</div>
-                      {allActions.map(action => (
-                        <div key={action} className="text-center text-xs font-semibold uppercase tracking-wider text-nexus-500">
-                          {action}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Matrix Rows */}
-                    <div className="space-y-2">
-                      {allCategories.map(category => (
-                        <div key={category} className="grid grid-cols-7 gap-4 items-center p-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors border border-white/5">
-                          <div className="col-span-1 text-sm font-medium text-nexus-200 capitalize">
-                            {category.replace('_', ' ')}
+                {activeTab === 'permissions' && (
+                  <div className="flex-1 overflow-auto pr-2 custom-scrollbar">
+                    <div className="min-w-[800px]">
+                      {/* Header Row */}
+                      <div className="grid grid-cols-7 gap-4 mb-4 pb-2 border-b border-border sticky top-0 bg-background/90 backdrop-blur-md z-10 pt-2">
+                        <div className="col-span-1 text-xs font-semibold uppercase tracking-wider text-muted">Resource</div>
+                        {allActions.map(action => (
+                          <div key={action} className="text-center text-xs font-semibold uppercase tracking-wider text-muted">
+                            {action}
                           </div>
-                          
-                          {allActions.map(action => {
-                            const isGranted = hasPermission(action, category)
-                            const existsInSystem = allPermissions.some(p => p.action === action && p.category === category)
-                            
-                            if (!existsInSystem) {
-                              return <div key={`${category}-${action}`} className="flex justify-center"><div className="w-8 h-8"></div></div>
-                            }
+                        ))}
+                      </div>
 
-                            return (
-                              <div key={`${category}-${action}`} className="flex justify-center">
-                                <button
-                                  onClick={() => togglePermission(action, category)}
-                                  className={`flex h-8 w-8 items-center justify-center rounded-md border transition-all ${
-                                    isGranted 
-                                      ? 'bg-success/20 border-success/30 text-success shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
-                                      : 'bg-nexus-950 border-white/10 text-nexus-600 hover:border-white/20'
-                                  }`}
-                                >
-                                  {isGranted ? <Check className="h-4 w-4" /> : <X className="h-4 w-4 opacity-30" />}
-                                </button>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      ))}
+                      {/* Matrix Rows */}
+                      <div className="space-y-2">
+                        {allCategories.map(category => (
+                          <div key={category} className="grid grid-cols-7 gap-4 items-center p-3 rounded-lg bg-surface border border-border hover:bg-surface-hover transition-colors">
+                            <div className="col-span-1 text-sm font-medium text-foreground capitalize">
+                              {category.replace('_', ' ')}
+                            </div>
+                            
+                            {allActions.map(action => {
+                              const isGranted = hasPermission(action, category)
+                              const existsInSystem = allPermissions.some(p => p.action === action && p.category === category)
+                              
+                              if (!existsInSystem) {
+                                return <div key={`${category}-${action}`} className="flex justify-center"><div className="w-8 h-8"></div></div>
+                              }
+
+                              return (
+                                <div key={`${category}-${action}`} className="flex justify-center">
+                                  <button
+                                    onClick={() => togglePermission(action, category)}
+                                    disabled={activeRole.isSystem}
+                                    className={`flex h-8 w-8 items-center justify-center rounded-md border transition-all ${
+                                      isGranted 
+                                        ? 'bg-success/20 border-success/30 text-success shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
+                                        : 'bg-surface border-border text-muted hover:border-muted'
+                                    } ${activeRole.isSystem ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  >
+                                    {isGranted ? <Check className="h-4 w-4" /> : <X className="h-4 w-4 opacity-30" />}
+                                  </button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {activeTab === 'users' && (
+                  <div className="flex-1 flex flex-col space-y-6">
+                    <div className="relative w-full max-w-md">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+                      <input
+                        type="text"
+                        placeholder="Search employee to assign..."
+                        value={employeeSearch}
+                        onChange={(e) => setEmployeeSearch(e.target.value)}
+                        className="h-10 w-full rounded-lg border border-border bg-surface pl-10 pr-4 text-sm text-foreground placeholder:text-muted focus:border-accent-indigo focus:outline-none"
+                      />
+                      {employeesResponse?.content && employeeSearch.length > 1 && (
+                        <div className="absolute top-12 left-0 w-full bg-surface border border-border rounded-lg shadow-xl z-20 overflow-hidden">
+                          {employeesResponse.content.map(emp => (
+                            <button
+                              key={emp.id}
+                              onClick={() => assignRoleMut.mutate({ roleId: activeRole.id, userId: emp.id })}
+                              className="w-full text-left px-4 py-3 hover:bg-surface-hover flex items-center justify-between border-b border-border last:border-0"
+                            >
+                              <div>
+                                <p className="text-sm font-semibold text-foreground">{emp.fullName}</p>
+                                <p className="text-xs text-muted">{emp.email}</p>
+                              </div>
+                              <UserPlus className="h-4 w-4 text-accent-indigo" />
+                            </button>
+                          ))}
+                          {employeesResponse.content.length === 0 && (
+                            <div className="p-4 text-sm text-muted text-center">No employees found.</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-8 text-center border-2 border-dashed border-border rounded-lg">
+                      <Users className="h-10 w-10 text-muted mx-auto mb-3" />
+                      <p className="text-sm text-muted">Use the search bar above to assign this role to users.</p>
+                      <p className="text-xs text-muted mt-1">Assignments take effect immediately.</p>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-nexus-500">
-                Select a role to view permissions.
+              <div className="flex-1 flex items-center justify-center text-muted">
+                Select a role to view permissions and assignments.
               </div>
             )}
           </GlassCard>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRealtimeStore } from '@/store'
+import { useQuery } from '@tanstack/react-query'
+import { dashboardApi } from '@/api/dashboard'
 import GlassCard from '@/components/ui/GlassCard'
 import ScrollReveal from '@/components/animation/ScrollReveal'
-import { AlertTriangle, Activity, Users, Zap } from 'lucide-react'
+import { AlertTriangle, Activity, Users, Zap, Loader2 } from 'lucide-react'
 
 // Lazy load heavy components
 import { lazy, Suspense } from 'react'
@@ -13,16 +15,42 @@ const LiveActivityFeed = lazy(() => import('@/components/realtime/LiveActivityFe
 
 export default function ExecutiveCommandCenter() {
   const [pulse, setPulse] = useState(false)
-  const connectRealtime = useRealtimeStore(s => s.connect)
+  const { connect: connectRealtime, setActivities } = useRealtimeStore()
 
-  // Initialize live STOMP connection when dashboard mounts
+  // Fetch executive dashboard data
+  const { data, isLoading } = useQuery({
+    queryKey: ['executiveDashboard'],
+    queryFn: () => dashboardApi.getExecutiveDashboard(),
+    refetchInterval: 30000 // Refetch every 30s
+  })
+
+  // Initialize live STOMP connection and set initial activity when dashboard mounts
   useEffect(() => {
     connectRealtime('mock-token-for-live')
+    if (data?.recentActivity) {
+      // Add missing avatar data to recentActivity (you could add this to backend DTO as well)
+      const formattedActivities = data.recentActivity.map(a => ({
+        ...a,
+        timestamp: a.time,
+        message: a.action,
+        type: a.type as any,
+        avatar: a.user.substring(0, 2).toUpperCase()
+      }))
+      setActivities(formattedActivities)
+    }
     
     // Simulate live data pulsing for the heatmaps/numbers
     const interval = setInterval(() => setPulse(p => !p), 3000)
     return () => clearInterval(interval)
-  }, [connectRealtime])
+  }, [connectRealtime, data?.recentActivity, setActivities])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <Loader2 className="h-10 w-10 animate-spin text-accent-indigo" />
+      </div>
+    )
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -39,12 +67,17 @@ export default function ExecutiveCommandCenter() {
         <div className="flex items-center gap-4 text-right">
           <div>
             <p className="text-xs text-nexus-500 uppercase">Workforce Health</p>
-            <p className="text-2xl font-bold text-success">92/100</p>
+            <p className={`text-2xl font-bold ${data?.workforceHealthScore && data.workforceHealthScore < 60 ? 'text-danger' : 'text-success'}`}>{data?.workforceHealthScore || 0}/100</p>
           </div>
           <div className="h-10 w-[1px] bg-white/10" />
           <div>
             <p className="text-xs text-nexus-500 uppercase">Active Users</p>
-            <motion.p animate={{ opacity: pulse ? 0.7 : 1 }} className="text-2xl font-bold text-accent-indigo">128</motion.p>
+            <motion.p animate={{ opacity: pulse ? 0.7 : 1 }} className="text-2xl font-bold text-accent-indigo">{data?.activeUsers || 0}</motion.p>
+          </div>
+          <div className="h-10 w-[1px] bg-white/10" />
+          <div>
+            <p className="text-xs text-nexus-500 uppercase">Total Headcount</p>
+            <p className="text-2xl font-bold text-nexus-100">{data?.totalHeadcount || 0}</p>
           </div>
         </div>
       </div>
@@ -72,7 +105,7 @@ export default function ExecutiveCommandCenter() {
         <ScrollReveal delay={0.1}>
           <div className="h-[400px]">
             <Suspense fallback={<div className="h-full w-full rounded-xl bg-white/5 animate-pulse" />}>
-              <PredictiveEngine />
+              <PredictiveEngine metrics={data?.predictiveMetrics || []} />
             </Suspense>
           </div>
         </ScrollReveal>
@@ -92,21 +125,21 @@ export default function ExecutiveCommandCenter() {
               </div>
             </div>
             
-            {/* Simulated Heatmap Grid */}
-            <div className="grid grid-cols-6 gap-2">
-              {['Engineering', 'Design', 'Sales', 'Finance', 'Marketing', 'HR'].map((dept, i) => (
-                <div key={dept} className="flex flex-col gap-2">
-                  <span className="text-[10px] text-nexus-400 font-medium truncate text-center">{dept}</span>
+            {/* Dynamic Heatmap Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {data?.attritionHeatmap?.map((heat, i) => (
+                <div key={heat.department} className="flex flex-col gap-2">
+                  <span className="text-[10px] text-nexus-400 font-medium truncate text-center" title={heat.department}>{heat.department}</span>
                   {[...Array(5)].map((_, j) => {
-                    // Generate random risk colors, highlighting Finance/Sales for effect
-                    const isHigh = (dept === 'Finance' && j > 2) || (dept === 'Sales' && j === 4)
-                    const isMedium = (dept === 'Engineering' && j === 0)
-                    const color = isHigh ? 'bg-danger/80' : isMedium ? 'bg-warning/80' : 'bg-success/80'
+                    // Normalize risk level (0-100) to 5 segments
+                    const threshold = (5 - j) * 20; 
+                    const isActive = heat.riskLevel >= (threshold - 10);
+                    const color = heat.riskLevel > 60 ? 'bg-danger/80' : heat.riskLevel > 30 ? 'bg-warning/80' : 'bg-success/80';
                     return (
                       <motion.div 
                         key={j} 
-                        className={`h-12 w-full rounded-md ${color} border border-white/5`}
-                        animate={isHigh ? { opacity: pulse ? 0.6 : 1 } : {}}
+                        className={`h-12 w-full rounded-md ${isActive ? color : 'bg-white/5'} border border-white/5`}
+                        animate={isActive && heat.riskLevel > 60 ? { opacity: pulse ? 0.6 : 1 } : {}}
                         transition={{ duration: 1 }}
                       />
                     )

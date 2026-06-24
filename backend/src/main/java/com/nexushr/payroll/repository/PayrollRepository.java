@@ -62,7 +62,7 @@ public interface PayrollRepository extends JpaRepository<Payroll, UUID> {
     List<DepartmentCostProjection> getDepartmentCosts(@Param("month") int month, @Param("year") int year);
 
     @Query(value = "SELECT month, year, SUM(net_salary) AS cost " +
-                   "FROM payrolls " +
+                   "FROM payroll " +
                    "GROUP BY year, month " +
                    "ORDER BY year DESC, month DESC " +
                    "LIMIT 6", nativeQuery = true)

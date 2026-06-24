@@ -64,9 +64,29 @@ export const attendanceApi = {
   },
 
   getDailyReport: async (date: string) => {
-    const res = await api.get<{ data: AttendanceResponse[] }>(`/attendance/daily-report`, {
+    const res = await api.get<{ data: AttendanceResponse[] }>('/attendance/daily-report', {
       params: { date }
     })
+    return res.data.data
+  },
+
+  correctAttendance: async (id: string, data: { checkInTime?: string; checkOutTime?: string; status?: string; notes?: string }) => {
+    const res = await api.patch<{ data: AttendanceResponse }>(`/attendance/${id}/correct`, data)
+    return res.data.data
+  },
+
+  getAllShifts: async () => {
+    const res = await api.get<{ data: any[] }>('/shifts')
+    return res.data.data
+  },
+
+  createShift: async (data: { name: string; startTime: string; endTime: string; description: string }) => {
+    const res = await api.post<{ data: any }>('/shifts', data)
+    return res.data.data
+  },
+
+  assignShift: async (shiftId: string, employeeId: string) => {
+    const res = await api.post<{ data: any }>(`/shifts/${shiftId}/assign/${employeeId}`)
     return res.data.data
   }
 }

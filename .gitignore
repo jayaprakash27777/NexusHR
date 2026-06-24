@@ -28,7 +28,14 @@ desktop.ini
 
 # === Environment ===
 .env
+.env.local
+.env.production
 *.env.local
+*.env.production
+backend/.env
+frontend/.env.local
+frontend/.env.production
+deployment/.env
 
 # === Docker ===
 docker-compose.override.yml

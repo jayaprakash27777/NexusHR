@@ -19,6 +19,7 @@ export default function SalaryStructureModal({ isOpen, onClose, onSave, isSaving
     hraPercentage: 40,
     daPercentage: 10,
     pfPercentage: 12,
+    esiPercentage: 0,
     otherAllowances: 0,
     active: true
   })
@@ -34,6 +35,7 @@ export default function SalaryStructureModal({ isOpen, onClose, onSave, isSaving
           hraPercentage: initialData.hraPercentage,
           daPercentage: initialData.daPercentage,
           pfPercentage: initialData.pfPercentage,
+          esiPercentage: initialData.esiPercentage || 0,
           otherAllowances: initialData.otherAllowances,
           active: initialData.active
         })
@@ -45,6 +47,7 @@ export default function SalaryStructureModal({ isOpen, onClose, onSave, isSaving
           hraPercentage: 40,
           daPercentage: 10,
           pfPercentage: 12,
+          esiPercentage: 0,
           otherAllowances: 0,
           active: true
         })
@@ -60,6 +63,7 @@ export default function SalaryStructureModal({ isOpen, onClose, onSave, isSaving
     if (formData.hraPercentage < 0 || formData.hraPercentage > 100) newErrors.hraPercentage = 'Must be 0-100'
     if (formData.daPercentage < 0 || formData.daPercentage > 100) newErrors.daPercentage = 'Must be 0-100'
     if (formData.pfPercentage < 0 || formData.pfPercentage > 100) newErrors.pfPercentage = 'Must be 0-100'
+    if (formData.esiPercentage < 0 || formData.esiPercentage > 100) newErrors.esiPercentage = 'Must be 0-100'
     if (formData.otherAllowances < 0) newErrors.otherAllowances = 'Cannot be negative'
     
     setErrors(newErrors)
@@ -201,6 +205,21 @@ export default function SalaryStructureModal({ isOpen, onClose, onSave, isSaving
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-nexus-500">%</span>
                   </div>
                   {errors.pfPercentage && <p className="text-danger text-xs mt-1">{errors.pfPercentage}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-nexus-300 mb-1">ESI % (of Gross)*</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.esiPercentage}
+                      onChange={(e) => setFormData({ ...formData, esiPercentage: Number(e.target.value) })}
+                      className={`w-full bg-white/[0.03] border ${errors.esiPercentage ? 'border-danger' : 'border-white/10'} rounded-lg px-4 py-2 text-white focus:outline-none focus:border-accent-indigo transition-all`}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-nexus-500">%</span>
+                  </div>
+                  {errors.esiPercentage && <p className="text-danger text-xs mt-1">{errors.esiPercentage}</p>}
                 </div>
 
                 <div className="flex items-center mt-6">

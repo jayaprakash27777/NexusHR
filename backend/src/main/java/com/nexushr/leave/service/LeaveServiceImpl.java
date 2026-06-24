@@ -188,6 +188,69 @@ public class LeaveServiceImpl implements LeaveService {
     }
 
     @Override
+    @Transactional
+    public ApiResponse<LeaveBalanceResponse> grantCompOff(UUID employeeId, int days) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", employeeId));
+
+        int currentYear = java.time.LocalDate.now().getYear();
+        LeaveBalance balance = leaveBalanceRepository.findByEmployeeIdAndLeaveTypeAndYear(employeeId, LeaveType.COMPENSATORY_OFF, currentYear)
+                .orElseGet(() -> {
+                    LeaveBalance newBalance = LeaveBalance.builder()
+                            .employee(employee)
+                            .year(currentYear)
+                            .leaveType(LeaveType.COMPENSATORY_OFF)
+                            .totalDays(java.math.BigDecimal.ZERO)
+                            .usedDays(java.math.BigDecimal.ZERO)
+                            .build();
+                    return newBalance;
+                });
+
+        balance.setTotalDays(balance.getTotalDays().add(java.math.BigDecimal.valueOf(days)));
+        LeaveBalance saved = leaveBalanceRepository.save(balance);
+
+        LeaveBalanceResponse response = LeaveBalanceResponse.builder()
+                .id(saved.getId())
+                .employeeId(employeeId)
+                .employeeName(employee.getFullName())
+                .leaveType(saved.getLeaveType())
+                .year(saved.getYear())
+                .totalDays(saved.getTotalDays())
+                .usedDays(saved.getUsedDays())
+                .remainingDays(saved.getRemainingDays())
+                .build();
+
+        return ApiResponse.success("Compensatory off granted successfully", response);
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<Void> carryForwardLeaves(int year) {
+        // Carry forward up to 5 days of EARNED_LEAVE from the specified year to year + 1
+        List<LeaveBalance> balances = leaveBalanceRepository.findAll().stream()
+                .filter(b -> b.getYear() == year && b.getLeaveType() == LeaveType.EARNED_LEAVE && b.getRemainingDays().compareTo(java.math.BigDecimal.ZERO) > 0)
+                .collect(Collectors.toList());
+
+        for (LeaveBalance oldBalance : balances) {
+            java.math.BigDecimal carryForwardDays = oldBalance.getRemainingDays().min(java.math.BigDecimal.valueOf(5));
+            if (carryForwardDays.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                LeaveBalance newBalance = leaveBalanceRepository.findByEmployeeIdAndLeaveTypeAndYear(oldBalance.getEmployee().getId(), LeaveType.EARNED_LEAVE, year + 1)
+                        .orElseGet(() -> LeaveBalance.builder()
+                                .employee(oldBalance.getEmployee())
+                                .year(year + 1)
+                                .leaveType(LeaveType.EARNED_LEAVE)
+                                .totalDays(java.math.BigDecimal.ZERO)
+                                .usedDays(java.math.BigDecimal.ZERO)
+                                .build());
+                
+                newBalance.setTotalDays(newBalance.getTotalDays().add(carryForwardDays));
+                leaveBalanceRepository.save(newBalance);
+            }
+        }
+        return ApiResponse.success("Leaves carried forward successfully for " + balances.size() + " employees.");
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public ApiResponse<LeaveRequestResponse> getById(UUID leaveId) {
         LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveId)

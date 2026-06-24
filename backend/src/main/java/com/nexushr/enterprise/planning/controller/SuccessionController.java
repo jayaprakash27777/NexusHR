@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/planning/succession")
+@RequestMapping("/planning/succession")
 @RequiredArgsConstructor
 public class SuccessionController {
 

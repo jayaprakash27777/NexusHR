@@ -32,6 +32,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final StringRedisTemplate redisTemplate;
+    private final com.nexushr.auth.repository.UserRepository userRepository;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates a new user account with EMPLOYEE role")
@@ -97,7 +98,9 @@ public class AuthController {
     @GetMapping("/sessions")
     @Operation(summary = "Get active sessions", description = "Returns a list of active sessions for the current user")
     public ResponseEntity<ApiResponse<List<RefreshToken>>> getActiveSessions(
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
         return ResponseEntity.ok(authService.getActiveSessions(user.getId()));
     }
 
@@ -105,16 +108,44 @@ public class AuthController {
     @Operation(summary = "Revoke session", description = "Revokes a specific active session")
     public ResponseEntity<ApiResponse<Void>> revokeSession(
             @PathVariable Long tokenId,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
         return ResponseEntity.ok(authService.revokeSession(user.getId(), tokenId));
     }
 
     @GetMapping("/login-history")
     @Operation(summary = "Get login history", description = "Returns paginated login history for the current user")
     public ResponseEntity<ApiResponse<PagedResponse<LoginHistory>>> getLoginHistory(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
         return ResponseEntity.ok(authService.getLoginHistory(user.getId(), page, size));
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Get current user", description = "Returns the currently authenticated user's details")
+    public ResponseEntity<ApiResponse<AuthUserDto>> getCurrentUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        // Fetch real User entity using the email (username) from UserDetails
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
+        
+        String role = user.getUserRoles().stream()
+                .map(ur -> ur.getRole().getName())
+                .findFirst()
+                .orElse("EMPLOYEE");
+
+        AuthUserDto dto = AuthUserDto.builder()
+                .id(user.getId())
+                .username(user.getEmail())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(role)
+                .avatar(user.getAvatarUrl())
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success("Current user retrieved successfully", dto));
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/planning/compensation")
+@RequestMapping("/planning/compensation")
 @RequiredArgsConstructor
 public class CompensationController {
 

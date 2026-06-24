@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/auth/roles")
+@RequestMapping("/auth/roles")
 @RequiredArgsConstructor
 @Tag(name = "Role Management", description = "Endpoints for managing roles and role assignments")
 public class RoleController {

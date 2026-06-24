@@ -15,5 +15,6 @@ public enum PermissionCategory {
     ROLES,
     SETTINGS,
     SECURITY,
-    INTEGRATIONS
+    INTEGRATIONS,
+    RECRUITMENT
 }

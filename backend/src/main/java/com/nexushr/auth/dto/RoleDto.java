@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -23,6 +24,7 @@ public class RoleDto {
     private Long parentRoleId;
     private String parentRoleName;
     private boolean isSystem;
+    private List<PermissionDto> permissions;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

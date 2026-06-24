@@ -33,6 +33,11 @@ public class ManagerDashboardResponse {
 
     // Team members quick view
     private List<TeamMemberSummary> teamMembers;
+    
+    // Dynamic lists
+    private List<ApprovalActionDto> pendingActions;
+    private List<TeamScheduleDto> teamSchedule;
+    private java.util.Map<String, Long> leaveTrend;
 
     @Data
     @Builder
@@ -44,5 +49,27 @@ public class ManagerDashboardResponse {
         private String designation;
         private String status;
         private boolean presentToday;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ApprovalActionDto {
+        private String id;
+        private String employeeName;
+        private String type;
+        private String details;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TeamScheduleDto {
+        private String day;
+        private long presentCount;
+        private long absentCount;
+        private long leaveCount;
     }
 }

@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     java.util.List<User> findByRoleName(@org.springframework.data.repository.query.Param("roleName") String roleName);
 
     org.springframework.data.domain.Page<User> findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email, org.springframework.data.domain.Pageable pageable);
+
+    long countByActiveFalse();
 }

@@ -25,4 +25,6 @@ public interface AttendanceService {
     ApiResponse<AttendanceSummaryResponse> getMonthlySummary(UUID employeeId, int year, int month);
 
     ApiResponse<List<AttendanceResponse>> getDailyReport(LocalDate date);
+
+    ApiResponse<AttendanceResponse> correctAttendance(UUID id, com.nexushr.attendance.dto.AttendanceCorrectionRequest request);
 }

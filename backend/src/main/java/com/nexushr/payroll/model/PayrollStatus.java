@@ -5,5 +5,6 @@ public enum PayrollStatus {
     PROCESSED,
     APPROVED,
     LOCKED,
-    PAID
+    PAID,
+    REVERSED
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/auth/permissions")
+@RequestMapping("/auth/permissions")
 @RequiredArgsConstructor
 @Tag(name = "Permission Management", description = "Endpoints for viewing available system permissions")
 public class PermissionController {

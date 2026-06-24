@@ -6,6 +6,9 @@ import GlassCard from '@/components/ui/GlassCard'
 import { attendanceApi } from '@/api/attendance'
 import { useAuthStore } from '@/store'
 import { useToastStore } from '@/store/toast'
+import ShiftManagement from '@/components/attendance/ShiftManagement'
+import AttendanceCorrectionModal from '@/components/attendance/AttendanceCorrectionModal'
+import { Download } from 'lucide-react'
 
 export default function AttendancePage() {
   const { user } = useAuthStore()
@@ -16,7 +19,8 @@ export default function AttendancePage() {
   const year = date.getFullYear()
   const month = date.getMonth() + 1
   
-  const [activeTab, setActiveTab] = useState<'MY_ATTENDANCE' | 'COMPANY_ATTENDANCE'>('MY_ATTENDANCE')
+  const [activeTab, setActiveTab] = useState<'MY_ATTENDANCE' | 'COMPANY_ATTENDANCE' | 'SHIFT_MANAGEMENT'>('MY_ATTENDANCE')
+  const [correctionRecord, setCorrectionRecord] = useState<any>(null)
   const isManager = user?.role === 'ADMIN' || user?.role === 'MANAGER'
   
   const formattedDate = date.toISOString().split('T')[0]
@@ -83,6 +87,30 @@ export default function AttendancePage() {
     }
   })
 
+  const exportDailyReport = () => {
+    if (!dailyReport) return
+    const csvContent = [
+      ['Employee Name', 'Employee ID', 'Date', 'Clock In', 'Clock Out', 'Hours', 'Status'],
+      ...dailyReport.map((r: any) => [
+        r.employeeName,
+        r.employeeCode,
+        new Date(r.date).toLocaleDateString(),
+        r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-',
+        r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-',
+        r.workHours || '-',
+        r.status
+      ])
+    ].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `daily_attendance_${formattedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   const logs = historyPage?.content || []
 
   const getStatusColor = (status: string) => {
@@ -130,9 +158,15 @@ export default function AttendancePage() {
             </button>
             <button 
               onClick={() => setActiveTab('COMPANY_ATTENDANCE')}
-              className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'COMPANY_ATTENDANCE' ? 'bg-accent-indigo text-white' : 'text-nexus-400 hover:bg-white/[0.05] hover:text-white'}`}
+              className={`px-4 py-2 text-xs font-medium transition-colors border-r border-white/10 ${activeTab === 'COMPANY_ATTENDANCE' ? 'bg-accent-indigo text-white' : 'text-nexus-400 hover:bg-white/[0.05] hover:text-white'}`}
             >
               Company Attendance
+            </button>
+            <button 
+              onClick={() => setActiveTab('SHIFT_MANAGEMENT')}
+              className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'SHIFT_MANAGEMENT' ? 'bg-accent-indigo text-white' : 'text-nexus-400 hover:bg-white/[0.05] hover:text-white'}`}
+            >
+              Shifts
             </button>
           </div>
         )}
@@ -264,8 +298,16 @@ export default function AttendancePage() {
         {activeTab === 'COMPANY_ATTENDANCE' && isManager && (
           <GlassCard className="p-0 overflow-hidden" delay={0.25}>
             <div className="p-5 border-b border-white/5 flex justify-between items-center">
-              <h3 className="text-sm font-semibold text-nexus-100">Daily Company Report</h3>
-              <span className="text-xs text-nexus-400">{new Date(formattedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <div>
+                <h3 className="text-sm font-semibold text-nexus-100">Daily Company Report</h3>
+                <span className="text-xs text-nexus-400">{new Date(formattedDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              </div>
+              <button 
+                onClick={exportDailyReport}
+                className="flex items-center gap-2 text-xs bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg text-nexus-200 transition-colors"
+              >
+                <Download className="h-4 w-4" /> Export CSV
+              </button>
             </div>
             <div className="overflow-x-auto min-h-[300px]">
               <table className="w-full min-w-[600px]">
@@ -305,9 +347,17 @@ export default function AttendancePage() {
                       <td className="px-5 py-3.5 text-xs text-nexus-300">{log.checkOutTime ? new Date(log.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</td>
                       <td className="px-5 py-3.5 text-xs font-semibold text-nexus-100">{log.workHours ? `${log.workHours}h` : '-'}</td>
                       <td className="px-5 py-3.5">
-                        <span className={`inline-flex items-center rounded-full bg-white/5 px-2 py-1 text-[10px] font-bold tracking-wider ${getStatusColor(log.status)}`}>
-                          {log.status}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span className={`inline-flex items-center rounded-full bg-white/5 px-2 py-1 text-[10px] font-bold tracking-wider ${getStatusColor(log.status)}`}>
+                            {log.status}
+                          </span>
+                          <button 
+                            onClick={() => setCorrectionRecord(log)}
+                            className="text-[10px] text-accent-indigo hover:text-indigo-400 font-medium"
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </td>
                     </motion.tr>
                   ))}
@@ -316,7 +366,17 @@ export default function AttendancePage() {
             </div>
           </GlassCard>
         )}
+
+        {activeTab === 'SHIFT_MANAGEMENT' && isManager && (
+          <ShiftManagement />
+        )}
       </div>
+
+      <AttendanceCorrectionModal 
+        isOpen={!!correctionRecord} 
+        onClose={() => setCorrectionRecord(null)} 
+        record={correctionRecord} 
+      />
     </motion.div>
   )
 }

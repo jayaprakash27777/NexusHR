@@ -4,7 +4,7 @@ export interface LeaveRequestResponse {
   id: string
   employeeId: string
   employeeName: string
-  leaveType: 'CASUAL_LEAVE' | 'SICK_LEAVE' | 'EARNED_LEAVE' | 'WORK_FROM_HOME'
+  leaveType: 'CASUAL_LEAVE' | 'SICK_LEAVE' | 'EARNED_LEAVE' | 'WORK_FROM_HOME' | 'COMPENSATORY_OFF'
   startDate: string
   endDate: string
   totalDays: number
@@ -90,10 +90,22 @@ export const leavesApi = {
     return res.data
   },
 
-  getLeaveBalances: async (employeeId: string, year = new Date().getFullYear()) => {
-    const res = await api.get<{ data: LeaveBalanceResponse[] }>(`/leaves/balance/${employeeId}`, {
+  getLeaveBalances: async (employeeId: string, year: number) => {
+    const res = await api.get<{ data: LeaveBalanceResponse[] }>(`/leaves/balances/${employeeId}`, {
       params: { year }
     })
+    return res.data.data
+  },
+
+  grantCompOff: async (employeeId: string, days: number) => {
+    const res = await api.post<{ data: LeaveBalanceResponse }>(`/leaves/grant-compoff/${employeeId}`, null, {
+      params: { days }
+    })
+    return res.data.data
+  },
+
+  carryForwardLeaves: async (year: number) => {
+    const res = await api.post<{ data: any }>(`/leaves/carry-forward/${year}`)
     return res.data.data
   }
 }

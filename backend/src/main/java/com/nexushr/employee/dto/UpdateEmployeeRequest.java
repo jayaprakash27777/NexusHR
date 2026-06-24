@@ -23,8 +23,10 @@ public class UpdateEmployeeRequest {
     @Size(min = 2, max = 100, message = "Last name must be between 2 and 100 characters")
     private String lastName;
 
-    @Size(max = 20, message = "Phone must not exceed 20 characters")
+    @Size(max = 20, message = "Phone cannot exceed 20 characters")
     private String phone;
+
+    private String avatarUrl;
 
     private LocalDate dateOfBirth;
 

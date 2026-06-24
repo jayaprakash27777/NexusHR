@@ -46,11 +46,20 @@ public class AdminDashboardResponse implements Serializable {
     // Notifications
     private long unreadNotifications;
 
+    // Security
+    private long activeSessions;
+    private long failedLoginAttempts;
+    private long lockedAccounts;
+
     // Charts data
     private Map<String, Long> employeesByDepartment;
     private Map<String, Long> employeesByStatus;
     private List<MonthlyTrend> attendanceTrend;
     private List<MonthlyTrend> payrollTrend;
+
+    private List<EmployeeSummaryDto> recentlyJoinedEmployees;
+    private List<EmployeeSummaryDto> recentlyResignedEmployees;
+    private List<EmployeeSummaryDto> employeesOnProbation;
 
     @Data
     @Builder
@@ -60,5 +69,21 @@ public class AdminDashboardResponse implements Serializable {
         private static final long serialVersionUID = 1L;
         private String month;
         private double value;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EmployeeSummaryDto implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private String id;
+        private String employeeId;
+        private String name;
+        private String email;
+        private String department;
+        private String designation;
+        private String joiningDate;
+        private String status;
     }
 }

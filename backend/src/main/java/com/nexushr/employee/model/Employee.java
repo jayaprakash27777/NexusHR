@@ -25,6 +25,13 @@ public class Employee extends BaseEntity {
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shift_id")
+    private com.nexushr.attendance.model.Shift shift;
+
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
@@ -46,6 +53,13 @@ public class Employee extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    @Column(name = "permanent_address", columnDefinition = "TEXT")
+    private String permanentAddress;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "employment_type", length = 20)
+    private EmploymentType employmentType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
@@ -59,6 +73,31 @@ public class Employee extends BaseEntity {
 
     @Column(name = "joining_date", nullable = false)
     private LocalDate joiningDate;
+
+    @Column(name = "bank_name", length = 100)
+    private String bankName;
+
+    @Column(name = "bank_account_number", length = 50)
+    private String bankAccountNumber;
+
+    @Column(name = "ifsc_code", length = 20)
+    private String ifscCode;
+
+    @Column(name = "pan_number", length = 20)
+    private String panNumber;
+
+    @Column(name = "pf_number", length = 50)
+    private String pfNumber;
+
+    @Column(name = "esi_number", length = 50)
+    private String esiNumber;
+
+    @Column(name = "uan_number", length = 20)
+    private String uanNumber;
+
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private String currency = "INR";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")

@@ -30,7 +30,7 @@ public class PayrollReportService {
     private static final String[] COLUMNS = {
             "Employee ID", "Employee Name", "Department", "Designation",
             "Basic Salary", "HRA", "DA", "Allowances", "Bonus", "Gross Salary",
-            "PF", "Tax", "Other Deductions", "Total Deductions", "Net Salary", "Status"
+            "PF", "ESI", "Tax", "Other Deductions", "Total Deductions", "Net Salary", "Currency", "Status"
     };
 
     public byte[] generateCsvReport(int month, int year) {
@@ -52,10 +52,32 @@ public class PayrollReportService {
                     .append(p.getBonus()).append(",")
                     .append(p.getGrossSalary()).append(",")
                     .append(p.getPfDeduction()).append(",")
+                    .append(p.getEsiDeduction()).append(",")
                     .append(p.getIncomeTax().add(p.getProfessionalTax())).append(",")
                     .append(p.getOtherDeductions()).append(",")
                     .append(p.getTotalDeductions()).append(",")
                     .append(p.getNetSalary()).append(",")
+                    .append(escapeCsv(p.getCurrency())).append(",")
+                    .append(p.getStatus().name()).append("\n");
+        }
+        return sb.toString().getBytes();
+    }
+
+    public byte[] generateBankFile(int month, int year) {
+        List<Payroll> payrolls = payrollRepository.findByMonthAndYearOrderByEmployeeFirstNameAsc(month, year);
+        StringBuilder sb = new StringBuilder();
+
+        // Bank File Header
+        sb.append("Employee ID,Employee Name,Bank Name,Account Number,IFSC Code,Net Salary,Currency,Status\n");
+
+        for (Payroll p : payrolls) {
+            sb.append(escapeCsv(p.getEmployee().getEmployeeId())).append(",")
+                    .append(escapeCsv(p.getEmployee().getFullName())).append(",")
+                    .append(escapeCsv(p.getEmployee().getBankName())).append(",")
+                    .append(escapeCsv(p.getEmployee().getBankAccountNumber())).append(",")
+                    .append(escapeCsv(p.getEmployee().getIfscCode())).append(",")
+                    .append(p.getNetSalary()).append(",")
+                    .append(escapeCsv(p.getCurrency())).append(",")
                     .append(p.getStatus().name()).append("\n");
         }
         return sb.toString().getBytes();

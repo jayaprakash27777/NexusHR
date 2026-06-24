@@ -41,11 +41,14 @@ public class PayrollResponse {
     private BigDecimal professionalTax;
     private BigDecimal incomeTax;
     private BigDecimal otherDeductions;
+    private BigDecimal esiDeduction;
     private BigDecimal totalDeductions;
 
     // Final
     private BigDecimal bonus;
     private BigDecimal netSalary;
+
+    private String currency;
 
     private PayrollStatus status;
     private LocalDateTime processedAt;

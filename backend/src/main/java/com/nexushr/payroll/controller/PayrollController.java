@@ -190,6 +190,11 @@ public class PayrollController {
                 contentType = MediaType.APPLICATION_PDF_VALUE;
                 fileName = "Payroll_Report_" + monthName + "_" + year + ".pdf";
                 break;
+            case "bank-file":
+                data = payrollReportService.generateBankFile(month, year);
+                contentType = "text/csv";
+                fileName = "Bank_File_" + monthName + "_" + year + ".csv";
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported format: " + format);
         }
@@ -200,6 +205,15 @@ public class PayrollController {
         headers.setContentLength(data.length);
 
         return new ResponseEntity<>(data, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/export/bank")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Export Bank Transfer File")
+    public ResponseEntity<byte[]> exportBankFile(
+            @RequestParam int month,
+            @RequestParam int year) {
+        return exportMonthlyReport(month, year, "bank-file");
     }
 
     @GetMapping("/{payrollId}/payslip/download")
@@ -233,5 +247,12 @@ public class PayrollController {
         headers.setContentLength(pdfBytes.length);
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/revert/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Revert a payroll", description = "Reverse a paid or processed payroll")
+    public ResponseEntity<ApiResponse<PayrollResponse>> revertPayroll(@PathVariable UUID id) {
+        return ResponseEntity.ok(payrollService.reversePayroll(id));
     }
 }

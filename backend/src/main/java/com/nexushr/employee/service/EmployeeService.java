@@ -20,6 +20,8 @@ public interface EmployeeService {
 
     ApiResponse<EmployeeResponse> update(UUID id, UpdateEmployeeRequest request);
 
+    ApiResponse<EmployeeResponse> uploadAvatar(UUID id, MultipartFile file);
+
     ApiResponse<EmployeeResponse> getById(UUID id);
 
     ApiResponse<EmployeeResponse> getByEmployeeId(String employeeId);

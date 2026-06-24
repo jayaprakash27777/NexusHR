@@ -3,6 +3,7 @@ package com.nexushr.attendance.model;
 public enum AttendanceStatus {
     PRESENT,
     ABSENT,
-    HALF_DAY,
-    LEAVE
+    WORK_FROM_HOME,
+    ON_LEAVE,
+    HALF_DAY
 }

@@ -11,4 +11,6 @@ import java.util.UUID;
 @Repository
 public interface LoginHistoryRepository extends JpaRepository<LoginHistory, UUID> {
     Page<LoginHistory> findByUserId(UUID userId, Pageable pageable);
+    
+    long countByStatus(String status);
 }

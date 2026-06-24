@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/auth/delegations")
+@RequestMapping("/auth/delegations")
 @RequiredArgsConstructor
 @Tag(name = "Delegation Management", description = "Endpoints for managing temporary role or permission delegations")
 public class DelegationController {

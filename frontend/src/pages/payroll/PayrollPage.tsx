@@ -14,7 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import SalaryStructureModal from './components/SalaryStructureModal'
 import { SalaryStructureRequest, SalaryStructureResponse } from '@/api/payroll'
 import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts'
-import { FileDown, FileSpreadsheet, FileIcon } from 'lucide-react'
+import { FileDown, FileSpreadsheet, FileIcon, FileClock } from 'lucide-react'
+import AuditLogsModal from '@/components/payroll/AuditLogsModal'
 
 const COLORS = ['#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#8b5cf6', '#ec4899', '#f43f5e']
 
@@ -56,6 +57,7 @@ export default function PayrollPage() {
 
   // Salary Structure State
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false)
   const [editingStructure, setEditingStructure] = useState<SalaryStructureResponse | null>(null)
 
   // Fetch Salary Structures
@@ -133,7 +135,7 @@ export default function PayrollPage() {
   })
 
   const exportMutation = useMutation({
-    mutationFn: (format: 'pdf' | 'excel' | 'csv') => payrollApi.exportMonthlyReport(currentMonth, currentYear, format),
+    mutationFn: (format: 'pdf' | 'excel' | 'csv' | 'bank-file') => payrollApi.exportMonthlyReport(currentMonth, currentYear, format),
     onSuccess: () => {
       addToast({ title: 'Exported', description: `Report export started.`, type: 'success' })
     },
@@ -173,6 +175,17 @@ export default function PayrollPage() {
       addToast({ title: 'Unlocked', description: msg, type: 'success' })
     },
     onError: (err: any) => addToast({ title: 'Unlocking Failed', description: err?.response?.data?.message || 'Failed', type: 'error' })
+  })
+
+  const reverseMutation = useMutation({
+    mutationFn: (id: string) => payrollApi.reversePayroll(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payrollSummary'] })
+      queryClient.invalidateQueries({ queryKey: ['searchMonthlyPayroll'] })
+      queryClient.invalidateQueries({ queryKey: ['payrollAuditLogs'] })
+      addToast({ title: 'Reversed', description: 'Payroll reversed successfully', type: 'success' })
+    },
+    onError: (err: any) => addToast({ title: 'Reversal Failed', description: err?.response?.data?.message || 'Failed to reverse', type: 'error' })
   })
 
   // Structure Mutations
@@ -256,6 +269,14 @@ export default function PayrollPage() {
         
         {isAdmin && activeTab === 'ADMIN_PAYROLL' && (
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAuditModalOpen(true)}
+              className="flex items-center gap-2 rounded-[var(--radius-lg)] bg-white/5 border border-white/10 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:bg-white/10 active:scale-[0.98]"
+            >
+              <FileClock className="h-4 w-4 text-nexus-300" />
+              View Audit Logs
+            </button>
+            
             {/* Dynamic Lifecycle Actions based on summary state */}
             {summary && summary.totalEmployeesProcessed === 0 && (
               <button 
@@ -461,10 +482,20 @@ export default function PayrollPage() {
                   <button 
                     onClick={() => exportMutation.mutate('csv')}
                     disabled={exportMutation.isPending}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-nexus-300 hover:bg-white/[0.05] hover:text-white transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-nexus-300 hover:bg-white/[0.05] hover:text-white transition-colors border-r border-white/10"
                     title="Export as CSV"
                   >
                     <FileDown className="h-3.5 w-3.5 text-accent-indigo" /> CSV
+                  </button>
+                  <button 
+                    onClick={() => {
+                      // Call the specific exportBankFile via API
+                      window.open(`${payrollApi.exportBankFile(currentMonth, currentYear)}`, '_blank')
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-nexus-300 hover:bg-white/[0.05] hover:text-white transition-colors"
+                    title="Export Bank File"
+                  >
+                    <Wallet className="h-3.5 w-3.5 text-warning" /> Bank File
                   </button>
                 </div>
 
@@ -544,6 +575,7 @@ export default function PayrollPage() {
                           record.status === 'PAID' ? 'text-success border-success/20 bg-success/10' :
                           record.status === 'APPROVED' ? 'text-accent-blue border-accent-blue/20 bg-accent-blue/10' :
                           record.status === 'FAILED' ? 'text-danger border-danger/20 bg-danger/10' :
+                          record.status === 'REVERSED' ? 'text-warning border-warning/20 bg-warning/10' :
                           'text-nexus-400 border-white/10 bg-white/5'
                         }`}>
                           {record.status}
@@ -567,6 +599,22 @@ export default function PayrollPage() {
                                 className="px-2 py-1 text-xs font-medium bg-success/10 text-success hover:bg-success/20 rounded transition-colors"
                               >
                                 Mark Paid
+                              </button>
+                            </HasPermission>
+                          )}
+                          {(record.status === 'PAID' || record.status === 'APPROVED') && (
+                            <HasPermission category="PAYROLL" action="EDIT">
+                              <button
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to reverse this payroll?')) {
+                                    reverseMutation.mutate(record.id)
+                                  }
+                                }}
+                                disabled={reverseMutation.isPending && reverseMutation.variables === record.id}
+                                className="px-2 py-1 text-xs font-medium bg-warning/10 text-warning hover:bg-warning/20 rounded transition-colors"
+                                title="Reverse Payroll"
+                              >
+                                Reverse
                               </button>
                             </HasPermission>
                           )}
@@ -843,6 +891,14 @@ export default function PayrollPage() {
         onSave={handleSaveStructure}
         isSaving={createStructureMutation.isPending || updateStructureMutation.isPending}
       />
+      {isAuditModalOpen && (
+        <AuditLogsModal
+          isOpen={isAuditModalOpen}
+          onClose={() => setIsAuditModalOpen(false)}
+          month={currentMonth}
+          year={currentYear}
+        />
+      )}
     </PageTransition>
   )
 }

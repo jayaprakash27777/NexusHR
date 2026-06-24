@@ -11,6 +11,9 @@ interface KPICardProps {
   icon: React.ReactNode
   gradient: string
   delay?: number
+  subtitle?: string
+  reverseTrend?: boolean
+  isCurrency?: boolean
 }
 
 import AnimatedCounter from '@/components/ui/AnimatedCounter'
@@ -23,6 +26,9 @@ export default function KPICard({
   icon,
   gradient,
   delay = 0,
+  subtitle,
+  reverseTrend,
+  isCurrency,
 }: KPICardProps) {
   const numValue = typeof value === 'number' ? value : parseFloat(value) || 0
   const change = previousValue ? ((numValue - previousValue) / previousValue) * 100 : null
@@ -101,31 +107,38 @@ export default function KPICard({
           </p>
           <div className="text-3xl font-bold text-foreground tracking-tight">
             {typeof value === 'number' ? (
-              <AnimatedCounter value={numValue} format={format as any} />
+              <AnimatedCounter value={numValue} format={isCurrency ? 'currency' : format as any} />
             ) : (
               value
             )}
           </div>
+          {subtitle && (
+            <p className="text-xs text-nexus-400 mt-2 font-medium">{subtitle}</p>
+          )}
 
           {/* Trend indicator */}
           {change !== null && (
-            <div className="mt-3 flex items-center gap-1.5">
-              {change > 0 ? (
-                <TrendingUp className="h-3.5 w-3.5 text-success" />
-              ) : change < 0 ? (
-                <TrendingDown className="h-3.5 w-3.5 text-danger" />
-              ) : (
-                <Minus className="h-3.5 w-3.5 text-nexus-400" />
-              )}
-              <span
+            <div className="mt-4 flex items-center gap-2">
+              <div
                 className={cn(
-                  'text-xs font-medium',
-                  change > 0 ? 'text-success' : change < 0 ? 'text-danger' : 'text-muted'
+                  'flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tracking-wide mt-3 w-max',
+                  change > 0 ? (reverseTrend ? 'bg-danger/10 text-danger border border-danger/20' : 'bg-success/10 text-success border border-success/20') : 
+                  change < 0 ? (reverseTrend ? 'bg-success/10 text-success border border-success/20' : 'bg-danger/10 text-danger border border-danger/20') : 
+                  'bg-nexus-500/10 text-nexus-400 border border-nexus-500/20'
                 )}
               >
-                {change > 0 ? '+' : ''}{change.toFixed(1)}%
-              </span>
-              <span className="text-xs text-muted/70">vs last month</span>
+                {change > 0 ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : change < 0 ? (
+                  <TrendingDown className="h-3 w-3" />
+                ) : (
+                  <Minus className="h-3 w-3" />
+                )}
+                <span>
+                  {change > 0 ? '+' : ''}{change.toFixed(1)}%
+                </span>
+              </div>
+              <span className="text-[11px] text-muted font-medium">vs last month</span>
             </div>
           )}
         </div>

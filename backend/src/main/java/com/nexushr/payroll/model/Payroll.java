@@ -64,6 +64,10 @@ public class Payroll extends BaseEntity {
     @Builder.Default
     private BigDecimal otherDeductions = BigDecimal.ZERO;
 
+    @Column(name = "esi_deduction", nullable = false, precision = 15, scale = 2)
+    @Builder.Default
+    private BigDecimal esiDeduction = BigDecimal.ZERO;
+
     @Column(name = "total_deductions", nullable = false, precision = 15, scale = 2)
     @Builder.Default
     private BigDecimal totalDeductions = BigDecimal.ZERO;
@@ -75,6 +79,10 @@ public class Payroll extends BaseEntity {
     @Column(name = "net_salary", nullable = false, precision = 15, scale = 2)
     @Builder.Default
     private BigDecimal netSalary = BigDecimal.ZERO;
+
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private String currency = "INR";
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

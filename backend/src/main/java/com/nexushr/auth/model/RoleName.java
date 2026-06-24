@@ -3,5 +3,12 @@ package com.nexushr.auth.model;
 public enum RoleName {
     ROLE_ADMIN,
     ROLE_MANAGER,
-    ROLE_EMPLOYEE
+    ROLE_EMPLOYEE,
+    ROLE_SUPER_ADMIN,
+    ROLE_HR_DIRECTOR,
+    ROLE_HR_EXECUTIVE,
+    ROLE_FINANCE_MANAGER,
+    ROLE_DEPARTMENT_MANAGER,
+    ROLE_TEAM_LEAD,
+    ROLE_AUDITOR
 }

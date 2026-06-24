@@ -17,6 +17,8 @@ import com.nexushr.payroll.model.TaxSlab;
 import com.nexushr.payroll.repository.PayrollRepository;
 import com.nexushr.payroll.repository.PayrollAuditLogRepository;
 import com.nexushr.payroll.repository.TaxSlabRepository;
+import com.nexushr.payroll.repository.SalaryStructureRepository;
+import com.nexushr.payroll.model.SalaryStructure;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,6 +44,7 @@ public class PayrollServiceImpl implements PayrollService {
     private final EmployeeRepository employeeRepository;
     private final TaxSlabRepository taxSlabRepository;
     private final PayrollAuditLogRepository auditLogRepository;
+    private final SalaryStructureRepository salaryStructureRepository;
 
     // Salary component percentages
     private static final BigDecimal HRA_PERCENT = new BigDecimal("0.40");       // 40% of basic
@@ -128,6 +131,25 @@ public class PayrollServiceImpl implements PayrollService {
 
         log.info("Payroll marked as paid: {} for {}", payrollId, payroll.getEmployee().getEmployeeId());
         return ApiResponse.success("Payroll marked as paid", mapToResponse(saved));
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<PayrollResponse> reversePayroll(UUID payrollId) {
+        Payroll payroll = payrollRepository.findById(payrollId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payroll", "id", payrollId));
+
+        if (payroll.getStatus() == PayrollStatus.REVERSED) {
+            throw new BadRequestException("Payroll is already reversed");
+        }
+
+        payroll.setStatus(PayrollStatus.REVERSED);
+        Payroll saved = payrollRepository.save(payroll);
+
+        logAudit(payroll.getMonth(), payroll.getYear(), "REVERSED", "Reversed payroll for " + payroll.getEmployee().getEmployeeId());
+        log.info("Payroll reversed: {} for {}", payrollId, payroll.getEmployee().getEmployeeId());
+        
+        return ApiResponse.success("Payroll reversed successfully", mapToResponse(saved));
     }
 
     @Override
@@ -413,17 +435,35 @@ public class PayrollServiceImpl implements PayrollService {
      */
     private Payroll calculatePayroll(Employee employee, int month, int year,
                                      BigDecimal bonus, BigDecimal otherAllowances, BigDecimal otherDeductions) {
-        BigDecimal basic = employee.getSalary();
-        BigDecimal hra = basic.multiply(HRA_PERCENT).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal da = basic.multiply(DA_PERCENT).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal otherAllow = otherAllowances != null ? otherAllowances : BigDecimal.ZERO;
-        BigDecimal gross = basic.add(hra).add(da).add(otherAllow);
+        SalaryStructure activeStructure = salaryStructureRepository.findAll().stream()
+                .filter(SalaryStructure::isActive)
+                .findFirst()
+                .orElse(null);
 
-        BigDecimal pf = basic.multiply(PF_PERCENT).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal hraPercent = activeStructure != null ? activeStructure.getHraPercentage().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP) : HRA_PERCENT;
+        BigDecimal daPercent = activeStructure != null ? activeStructure.getDaPercentage().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP) : DA_PERCENT;
+        BigDecimal pfPercent = activeStructure != null ? activeStructure.getPfPercentage().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP) : PF_PERCENT;
+        BigDecimal esiPercent = activeStructure != null ? activeStructure.getEsiPercentage().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal structOtherAllow = activeStructure != null ? activeStructure.getOtherAllowances() : BigDecimal.ZERO;
+
+        BigDecimal basic = employee.getSalary();
+        BigDecimal hra = basic.multiply(hraPercent).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal da = basic.multiply(daPercent).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal combinedOtherAllow = structOtherAllow.add(otherAllowances != null ? otherAllowances : BigDecimal.ZERO);
+        BigDecimal gross = basic.add(hra).add(da).add(combinedOtherAllow);
+
+        BigDecimal pf = basic.multiply(pfPercent).setScale(2, RoundingMode.HALF_UP);
+        
+        // ESI Logic: typically 0.75% of Gross if gross <= 21000
+        BigDecimal esi = BigDecimal.ZERO;
+        if (gross.compareTo(new BigDecimal("21000")) <= 0 && esiPercent.compareTo(BigDecimal.ZERO) > 0) {
+            esi = gross.multiply(esiPercent).setScale(2, RoundingMode.HALF_UP);
+        }
+
         BigDecimal profTax = PROFESSIONAL_TAX;
         BigDecimal incomeTax = calculateMonthlyIncomeTax(gross);
         BigDecimal otherDed = otherDeductions != null ? otherDeductions : BigDecimal.ZERO;
-        BigDecimal totalDed = pf.add(profTax).add(incomeTax).add(otherDed);
+        BigDecimal totalDed = pf.add(profTax).add(incomeTax).add(esi).add(otherDed);
 
         BigDecimal bonusAmt = bonus != null ? bonus : BigDecimal.ZERO;
         BigDecimal net = gross.subtract(totalDed).add(bonusAmt);
@@ -435,11 +475,12 @@ public class PayrollServiceImpl implements PayrollService {
                 .basicSalary(basic)
                 .hra(hra)
                 .da(da)
-                .otherAllowances(otherAllow)
+                .otherAllowances(combinedOtherAllow)
                 .grossSalary(gross)
                 .pfDeduction(pf)
                 .professionalTax(profTax)
                 .incomeTax(incomeTax)
+                .esiDeduction(esi)
                 .otherDeductions(otherDed)
                 .totalDeductions(totalDed)
                 .bonus(bonusAmt)
@@ -498,9 +539,11 @@ public class PayrollServiceImpl implements PayrollService {
                 .professionalTax(p.getProfessionalTax())
                 .incomeTax(p.getIncomeTax())
                 .otherDeductions(p.getOtherDeductions())
+                .esiDeduction(p.getEsiDeduction())
                 .totalDeductions(p.getTotalDeductions())
                 .bonus(p.getBonus())
                 .netSalary(p.getNetSalary())
+                .currency(p.getCurrency())
                 .status(p.getStatus())
                 .processedAt(p.getProcessedAt())
                 .paidAt(p.getPaidAt())

@@ -16,7 +16,7 @@ export default function Topbar() {
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-xl"
+      className="sticky top-4 z-30 mx-4 mt-4 flex h-14 items-center justify-between rounded-[var(--radius-xl)] border border-border bg-surface/80 px-6 backdrop-blur-xl shadow-lg"
     >
       <div className="flex items-center gap-4">
         <button 

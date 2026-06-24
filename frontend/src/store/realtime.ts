@@ -15,7 +15,7 @@ export interface ActivityEvent {
   metadata?: Record<string, any>
 }
 
-const WS_URL = 'https://nexushr-fxe4.onrender.com/api/ws'
+const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:8080/api/ws'
 
 interface RealtimeState {
   status: ConnectionStatus
@@ -26,6 +26,7 @@ interface RealtimeState {
   connect: (token: string) => void
   disconnect: () => void
   addActivity: (activity: ActivityEvent) => void
+  setActivities: (activities: ActivityEvent[]) => void
 }
 
 export const useRealtimeStore = create<RealtimeState>((set, get) => ({
@@ -139,5 +140,9 @@ export const useRealtimeStore = create<RealtimeState>((set, get) => ({
     set((state) => ({
       activityStream: [activity, ...state.activityStream].slice(0, 100),
     }))
+  },
+
+  setActivities: (activities: ActivityEvent[]) => {
+    set({ activityStream: activities })
   },
 }))
