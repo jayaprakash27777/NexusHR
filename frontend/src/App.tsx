@@ -21,6 +21,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const ExecutiveCommandCenter = lazy(() => import('./pages/executive/ExecutiveCommandCenter'))
+const SuperAdminDashboard = lazy(() => import('./pages/dashboard/SuperAdminDashboard'))
 const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'))
 const EmployeeDashboard = lazy(() => import('./pages/dashboard/EmployeeDashboard'))
 const ManagerDashboard = lazy(() => import('./pages/dashboard/ManagerDashboard'))
@@ -119,7 +120,8 @@ export default function App() {
               }
             >
               <Route index element={<RoleBasedRedirect />} />
-              <Route path="executive" element={<ExecutiveCommandCenter />} />
+              <Route path="executive" element={<SuperAdminDashboard />} />
+              <Route path="executive/command-center" element={<ExecutiveCommandCenter />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="dashboard/employee" element={<EmployeeDashboard />} />
               <Route path="dashboard/manager" element={<RequirePermission category="PERFORMANCE" action="READ"><ManagerDashboard /></RequirePermission>} />

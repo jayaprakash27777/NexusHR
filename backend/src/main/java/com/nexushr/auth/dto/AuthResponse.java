@@ -19,6 +19,7 @@ public class AuthResponse {
     private String lastName;
     private String email;
     private Set<String> roles;
+    private AuthUserDto user;
     private String accessToken;
     private String refreshToken;
     private String tokenType;

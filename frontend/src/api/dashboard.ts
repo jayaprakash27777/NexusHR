@@ -39,6 +39,7 @@ export interface AdminDashboardResponse {
 export interface EmployeeSummaryDto {
   id: string
   employeeId: string
+  userId?: string
   name: string
   email: string
   department: string

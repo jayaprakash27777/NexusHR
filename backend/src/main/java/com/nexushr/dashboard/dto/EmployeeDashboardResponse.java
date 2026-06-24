@@ -45,7 +45,7 @@ public class EmployeeDashboardResponse {
     // Notifications
     private long unreadNotifications;
 
-    // Additional dynamic mock lists
+    // Additional data lists
     private List<DocumentDto> recentDocuments;
     private List<GoalDto> upcomingGoals;
     private java.util.Map<String, Double> attendanceTrend;

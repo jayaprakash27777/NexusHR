@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, Reorder } from 'framer-motion'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Map, Plus, Edit2, PlayCircle, ToggleRight, ToggleLeft, 
   Trash2, MonitorPlay, Save, Check, GripVertical, Type, Hash
@@ -7,78 +8,81 @@ import {
 import PageTransition from '@/components/animation/PageTransition'
 import GlassCard from '@/components/ui/GlassCard'
 import { toast } from '@/store/toast'
-
-interface TourStep {
-  id: string
-  title: string
-  content: string
-  targetSelector: string
-}
-
-interface ProductTour {
-  id: string
-  name: string
-  description: string
-  active: boolean
-  steps: TourStep[]
-}
-
-const mockTours: ProductTour[] = [
-  {
-    id: '1',
-    name: 'New Employee Welcome Tour',
-    description: 'Guides new hires through their dashboard and immediate tasks.',
-    active: true,
-    steps: [
-      { id: 's1', title: 'Welcome to NexusHR', content: 'This is your central hub for everything work-related.', targetSelector: '#dashboard-header' },
-      { id: 's2', title: 'Pending Tasks', content: 'Here you will find items requiring your attention, like signing documents.', targetSelector: '#pending-tasks' }
-    ]
-  },
-  {
-    id: '2',
-    name: 'How to Submit an Expense',
-    description: 'A quick 3-step guide on creating and submitting an expense report.',
-    active: false,
-    steps: []
-  }
-]
+import { learningApi, type ProductTour, type TourStep } from '@/api/learning'
 
 export default function OnboardingManager() {
-  const [tours, setTours] = useState<ProductTour[]>(mockTours)
-  const [activeTourId, setActiveTourId] = useState<string>(mockTours[0].id)
-  
-  const activeTour = tours.find(t => t.id === activeTourId)
+  const queryClient = useQueryClient()
+  const { data: tours = [] } = useQuery({
+    queryKey: ['tours'],
+    queryFn: learningApi.getTours
+  })
+
+  // To allow optimistic updates for building steps, we keep a local state
+  // of the active tour. We initialize it from the server data.
+  const [activeTourId, setActiveTourId] = useState<string | null>(null)
+  const [localActiveTour, setLocalActiveTour] = useState<ProductTour | null>(null)
+
+  useEffect(() => {
+    if (tours.length > 0 && !activeTourId) {
+      setActiveTourId(tours[0].id)
+    }
+  }, [tours, activeTourId])
+
+  useEffect(() => {
+    if (activeTourId) {
+      const tour = tours.find(t => t.id === activeTourId)
+      if (tour) setLocalActiveTour({ ...tour })
+    }
+  }, [activeTourId, tours])
+
+  const toggleMutation = useMutation({
+    mutationFn: learningApi.toggleTourStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tours'] })
+      toast.success('Tour Status Updated', 'The onboarding flow status has been toggled.')
+    }
+  })
+
+  const saveMutation = useMutation({
+    mutationFn: (data: { id: string, payload: Partial<ProductTour> }) => learningApi.updateTour(data.id, data.payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tours'] })
+      toast.success('Tour Saved', 'Your product tour has been successfully updated.')
+    }
+  })
 
   const toggleTourStatus = (id: string) => {
-    setTours(tours.map(t => t.id === id ? { ...t, active: !t.active } : t))
-    toast.success('Tour Status Updated', 'The onboarding flow status has been toggled.')
+    toggleMutation.mutate(id)
   }
 
   const addStep = () => {
-    if (!activeTour) return
-    const newSteps = [...activeTour.steps, {
+    if (!localActiveTour) return
+    const newSteps = [...localActiveTour.steps, {
       id: Math.random().toString(36).substring(7),
       title: 'New Step',
       content: 'Describe what the user should do here...',
-      targetSelector: '#element-id'
+      targetSelector: '#element-id',
+      stepOrder: localActiveTour.steps.length + 1
     }]
-    setTours(tours.map(t => t.id === activeTour.id ? { ...t, steps: newSteps } : t))
+    setLocalActiveTour({ ...localActiveTour, steps: newSteps })
   }
 
-  const updateStep = (stepId: string, field: keyof TourStep, value: string) => {
-    if (!activeTour) return
-    const newSteps = activeTour.steps.map(s => s.id === stepId ? { ...s, [field]: value } : s)
-    setTours(tours.map(t => t.id === activeTour.id ? { ...t, steps: newSteps } : t))
+  const updateStep = (stepId: string, field: keyof TourStep, value: string | number) => {
+    if (!localActiveTour) return
+    const newSteps = localActiveTour.steps.map(s => s.id === stepId ? { ...s, [field]: value } : s)
+    setLocalActiveTour({ ...localActiveTour, steps: newSteps })
   }
 
   const removeStep = (stepId: string) => {
-    if (!activeTour) return
-    const newSteps = activeTour.steps.filter(s => s.id !== stepId)
-    setTours(tours.map(t => t.id === activeTour.id ? { ...t, steps: newSteps } : t))
+    if (!localActiveTour) return
+    const newSteps = localActiveTour.steps.filter(s => s.id !== stepId)
+    setLocalActiveTour({ ...localActiveTour, steps: newSteps })
   }
 
   const handleSave = () => {
-    toast.success('Tour Saved', 'Your product tour has been successfully updated.')
+    if (localActiveTour) {
+      saveMutation.mutate({ id: localActiveTour.id, payload: localActiveTour })
+    }
   }
 
   return (
@@ -135,20 +139,20 @@ export default function OnboardingManager() {
         {/* Tour Builder */}
         <div className="flex-1">
           <GlassCard className="p-6 h-full flex flex-col overflow-hidden">
-            {activeTour ? (
+            {localActiveTour ? (
               <>
                 <div className="mb-6 flex items-start justify-between pb-6 border-b border-white/10">
                   <div className="flex-1 mr-8">
                     <input 
                       type="text"
-                      value={activeTour.name}
-                      onChange={(e) => setTours(tours.map(t => t.id === activeTour.id ? { ...t, name: e.target.value } : t))}
+                      value={localActiveTour.name}
+                      onChange={(e) => setLocalActiveTour({ ...localActiveTour, name: e.target.value })}
                       className="text-xl font-bold text-nexus-50 bg-transparent border-none focus:outline-none focus:ring-0 px-0 py-0 w-full mb-1"
                     />
                     <input 
                       type="text"
-                      value={activeTour.description}
-                      onChange={(e) => setTours(tours.map(t => t.id === activeTour.id ? { ...t, description: e.target.value } : t))}
+                      value={localActiveTour.description}
+                      onChange={(e) => setLocalActiveTour({ ...localActiveTour, description: e.target.value })}
                       className="text-sm text-nexus-400 bg-transparent border-none focus:outline-none focus:ring-0 px-0 py-0 w-full"
                     />
                   </div>
@@ -163,7 +167,7 @@ export default function OnboardingManager() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                  {activeTour.steps.length === 0 ? (
+                  {localActiveTour.steps.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-nexus-500 border-2 border-dashed border-white/10 rounded-xl bg-white/[0.01]">
                       <Map className="h-12 w-12 mb-4 opacity-50" />
                       <p className="text-sm">No steps defined for this tour.</p>
@@ -173,7 +177,7 @@ export default function OnboardingManager() {
                     </div>
                   ) : (
                     <div className="space-y-4 pb-12">
-                      {activeTour.steps.map((step, index) => (
+                      {localActiveTour.steps.map((step, index) => (
                         <div key={step.id} className="relative flex items-start gap-4 p-5 rounded-xl border border-white/10 bg-nexus-900/50 group hover:border-white/20 transition-all">
                           <div className="pt-1 text-nexus-600">
                             <div className="h-6 w-6 rounded-full bg-nexus-800 border border-white/20 flex items-center justify-center text-xs font-bold text-nexus-300">

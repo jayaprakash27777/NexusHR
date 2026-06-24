@@ -47,6 +47,10 @@ public class Role {
     @Builder.Default
     private boolean isSystem = false;
 
+    @Column(name = "default_dashboard", length = 255)
+    @Builder.Default
+    private String defaultDashboard = "/dashboard/employee";
+
     @Column(name = "tenant_id")
     private UUID tenantId;
 

@@ -522,6 +522,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .managerName(employee.getManager() != null ? employee.getManager().getFullName() : null)
                 .status(employee.getStatus())
                 .hasUserAccount(employee.getUser() != null)
+                .userId(employee.getUser() != null ? employee.getUser().getId() : null)
                 .roles(employee.getUser() != null ? employee.getUser().getUserRoles().stream()
                         .map(ur -> ur.getRole().getName()).collect(java.util.stream.Collectors.toList()) : null)
                 .mfaEnabled(employee.getUser() != null ? employee.getUser().isMfaEnabled() : false)

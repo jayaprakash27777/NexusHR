@@ -75,19 +75,8 @@ export default function AdminDashboard() {
 
   const [chartView, setChartView] = useState<'attendance' | 'payroll'>('attendance')
   const [searchUserQuery, setSearchUserQuery] = useState('')
-  const [selectedUser, setSelectedUser] = useState<any>(null)
   const [newPassword, setNewPassword] = useState('')
   const [actionMessage, setActionMessage] = useState('')
-
-  const handleSearchUser = async () => {
-    try {
-      // Simulate search by just resolving to something if there's text, 
-      // or we can use employees API, but we just want the ID. 
-      // For a real app, you'd use a useQuery or an API call to search.
-      // Assuming we have employeeAPI or we just fetch from dashboard.
-      // We will just let the user type a UUID for now, or assume the selectedUser is handled.
-    } catch (e) {}
-  }
 
   const { data: dashboard, isLoading, isError } = useQuery<AdminDashboardResponse>({
     queryKey: ['dashboard', 'admin'],
@@ -100,6 +89,12 @@ export default function AdminDashboard() {
     queryKey: ['ai-insights'],
     queryFn: () => aiApi.getInsights(3),
     staleTime: 5 * 60 * 1000,
+  })
+
+  const { data: employeesData } = useQuery({
+    queryKey: ['employees', 'all'],
+    queryFn: () => import('@/api/employees').then(m => m.employeesApi.getAll({ size: 1000 })),
+    enabled: user?.role === 'SUPER_ADMIN'
   })
 
   if (isLoading) return <DashboardSkeleton />
@@ -710,15 +705,20 @@ export default function AdminDashboard() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <label className="text-xs font-semibold text-nexus-400 uppercase tracking-wider">Target User UUID</label>
-              <input 
-                type="text" 
-                placeholder="Enter User UUID (e.g. 123e4567-e89b-12d3...)" 
+              <label className="text-xs font-semibold text-nexus-400 uppercase tracking-wider">Select Target User</label>
+              <select 
                 value={searchUserQuery}
                 onChange={(e) => setSearchUserQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-nexus-500 focus:outline-none focus:border-danger/50 focus:ring-1 focus:ring-danger/50"
-              />
-              <p className="text-xs text-nexus-500">Provide the exact user UUID to perform critical actions.</p>
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-danger/50 focus:ring-1 focus:ring-danger/50 appearance-none"
+              >
+                <option value="" disabled>Select an employee with user account...</option>
+                {employeesData?.content?.filter(emp => emp.userId).map(emp => (
+                  <option key={emp.userId} value={emp.userId} className="bg-background text-foreground">
+                    {emp.fullName} ({emp.email}) - {emp.designation}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-nexus-500">Select an employee to perform critical user actions on their account.</p>
             </div>
             
             <div className="space-y-4 bg-white/[0.02] p-4 rounded-xl border border-white/[0.05]">

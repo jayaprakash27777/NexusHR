@@ -23,7 +23,7 @@ app:
     secret: ${JWT_SECRET}
     expiration: 86400000
   cors:
-    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://frontend:80}
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://frontend:80,https://*.vercel.app,https://*.onrender.com}
 
 server:
   port: 8080

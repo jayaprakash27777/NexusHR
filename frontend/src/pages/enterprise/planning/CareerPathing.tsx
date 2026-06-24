@@ -1,38 +1,45 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
+import { planningApi, type CareerRoleNode } from '@/api/planning'
 import { 
   Milestone, ArrowRight, BookOpen, Star, Lock,
-  TrendingUp, PlayCircle, Code, Users
+  TrendingUp, PlayCircle, Code, Users, Loader2
 } from 'lucide-react'
 import PageTransition from '@/components/animation/PageTransition'
 import GlassCard from '@/components/ui/GlassCard'
 
-interface RoleNode {
-  id: string
-  title: string
-  level: string
-  track: 'ic' | 'management'
-  baseRange: [number, number]
-  status: 'current' | 'next' | 'future'
-  description: string
-  requirements: string[]
-}
-
-const mockPath: Record<string, RoleNode[]> = {
-  ic: [
-    { id: '1', title: 'Software Engineer', level: 'L3', track: 'ic', baseRange: [120000, 160000], status: 'current', description: 'Develops features and fixes bugs under guidance.', requirements: ['Proficiency in React/Node', 'Basic system design', 'Consistently delivers on sprint goals'] },
-    { id: '2', title: 'Senior Software Eng', level: 'L4', track: 'ic', baseRange: [160000, 210000], status: 'next', description: 'Leads complex projects and mentors junior engineers.', requirements: ['Advanced system architecture', 'Cross-team collaboration', 'Mentorship experience'] },
-    { id: '3', title: 'Staff Engineer', level: 'L5', track: 'ic', baseRange: [210000, 280000], status: 'future', description: 'Drives technical strategy across multiple teams.', requirements: ['Domain expertise', 'Architectural leadership', 'Business impact alignment'] },
-  ],
-  management: [
-    { id: '4', title: 'Engineering Manager', level: 'M1', track: 'management', baseRange: [170000, 220000], status: 'future', description: 'Manages a team of 5-8 engineers, focusing on delivery and growth.', requirements: ['People management skills', 'Project delivery', 'Performance management'] },
-    { id: '5', title: 'Senior Eng Manager', level: 'M2', track: 'management', baseRange: [220000, 290000], status: 'future', description: 'Manages multiple teams or complex domains.', requirements: ['Strategic planning', 'Organizational design', 'Budget management'] }
-  ]
-}
-
 export default function CareerPathing() {
   const [activeTrack, setActiveTrack] = useState<'ic' | 'management'>('ic')
-  const [selectedRole, setSelectedRole] = useState<RoleNode>(mockPath.ic[1])
+  const [selectedRole, setSelectedRole] = useState<CareerRoleNode | null>(null)
+
+  const { data: careerPaths, isLoading } = useQuery({
+    queryKey: ['careerPaths'],
+    queryFn: () => planningApi.getCareerPaths()
+  })
+
+  // Automatically select the first role when data loads
+  useEffect(() => {
+    if (careerPaths && careerPaths[activeTrack] && careerPaths[activeTrack].length > 0) {
+      // Prefer setting the "next" or "current" status role if possible
+      const targetRole = careerPaths[activeTrack].find(r => r.status === 'next') || careerPaths[activeTrack][0];
+      setSelectedRole(targetRole);
+    }
+  }, [careerPaths, activeTrack])
+
+  if (isLoading) {
+    return (
+      <PageTransition className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent-cyan" />
+      </PageTransition>
+    )
+  }
+
+  if (!careerPaths || !selectedRole) {
+    return null
+  }
+
+  const currentPath = careerPaths ? careerPaths[activeTrack] : []
 
   return (
     <PageTransition className="space-y-6 h-full flex flex-col">
@@ -52,7 +59,10 @@ export default function CareerPathing() {
         <div className="lg:w-2/3 flex flex-col">
           <div className="flex items-center gap-4 mb-6">
             <button
-              onClick={() => { setActiveTrack('ic'); setSelectedRole(mockPath.ic[1]) }}
+              onClick={() => { 
+                setActiveTrack('ic'); 
+                if (careerPaths && careerPaths.ic.length > 0) setSelectedRole(careerPaths.ic[0]) 
+              }}
               className={`flex-1 p-4 rounded-xl border transition-all flex items-center justify-center gap-3 ${
                 activeTrack === 'ic' 
                   ? 'bg-accent-indigo/10 border-accent-indigo text-accent-indigo' 
@@ -63,7 +73,10 @@ export default function CareerPathing() {
               <div className="font-bold">Individual Contributor Track</div>
             </button>
             <button
-              onClick={() => { setActiveTrack('management'); setSelectedRole(mockPath.management[0]) }}
+              onClick={() => { 
+                setActiveTrack('management'); 
+                if (careerPaths && careerPaths.management.length > 0) setSelectedRole(careerPaths.management[0]) 
+              }}
               className={`flex-1 p-4 rounded-xl border transition-all flex items-center justify-center gap-3 ${
                 activeTrack === 'management' 
                   ? 'bg-accent-indigo/10 border-accent-indigo text-accent-indigo' 
@@ -85,7 +98,7 @@ export default function CareerPathing() {
             </div>
 
             <div className="relative flex justify-between items-center z-10 w-full max-w-4xl mx-auto">
-              {mockPath[activeTrack].map((role, idx) => (
+              {currentPath.map((role, idx) => (
                 <div key={role.id} className="flex flex-col items-center relative group cursor-pointer" onClick={() => setSelectedRole(role)}>
                   
                   {/* Status Indicator */}

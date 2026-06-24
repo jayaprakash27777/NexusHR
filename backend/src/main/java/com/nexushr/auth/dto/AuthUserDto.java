@@ -17,6 +17,7 @@ public class AuthUserDto {
     private String email;
     private String fullName;
     private String role;
+    private String dashboardUrl;
     private String employeeId;
     private String avatar;
 }

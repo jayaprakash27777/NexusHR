@@ -283,6 +283,28 @@ public class AuthServiceImpl implements AuthService {
     }
     
     private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
+        com.nexushr.auth.model.Role primaryRole = user.getUserRoles().stream()
+                .map(com.nexushr.auth.model.UserRole::getRole)
+                .min((r1, r2) -> {
+                    if (r1.getName().equals("ROLE_EMPLOYEE")) return 1;
+                    if (r2.getName().equals("ROLE_EMPLOYEE")) return -1;
+                    return 0;
+                })
+                .orElse(null);
+
+        String roleName = primaryRole != null ? primaryRole.getName() : "ROLE_EMPLOYEE";
+        String dashboardUrl = primaryRole != null ? primaryRole.getDefaultDashboard() : "/dashboard/employee";
+
+        AuthUserDto userDto = AuthUserDto.builder()
+                .id(user.getId())
+                .username(user.getEmail())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(roleName)
+                .dashboardUrl(dashboardUrl)
+                .avatar(user.getAvatarUrl())
+                .build();
+
         return AuthResponse.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())
@@ -291,6 +313,7 @@ public class AuthServiceImpl implements AuthService {
                 .roles(user.getUserRoles().stream()
                         .map(userRole -> userRole.getRole().getName())
                         .collect(Collectors.toSet()))
+                .user(userDto)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")

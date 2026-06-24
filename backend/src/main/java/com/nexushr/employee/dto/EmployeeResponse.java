@@ -47,6 +47,7 @@ public class EmployeeResponse {
 
     private EmployeeStatus status;
     private boolean hasUserAccount;
+    private UUID userId;
     private java.util.List<String> roles;
     private boolean mfaEnabled;
     private LocalDateTime lastLogin;

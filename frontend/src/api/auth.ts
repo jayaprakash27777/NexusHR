@@ -11,6 +11,7 @@ export interface AuthUser {
   email: string
   fullName: string
   role: string
+  dashboardUrl?: string
   employeeId?: string
   avatar?: string
 }

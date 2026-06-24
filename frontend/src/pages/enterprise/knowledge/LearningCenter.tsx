@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   GraduationCap, PlayCircle, Award, CheckCircle2, Clock, 
   BarChart, FileText, ChevronRight, Play, Check,
@@ -8,56 +9,29 @@ import {
 import PageTransition from '@/components/animation/PageTransition'
 import GlassCard from '@/components/ui/GlassCard'
 import { toast } from '@/store/toast'
-
-interface Course {
-  id: string
-  title: string
-  category: string
-  duration: string
-  modules: number
-  status: 'not_started' | 'in_progress' | 'completed'
-  progress: number
-  dueDate?: string
-  thumbnail: string
-}
-
-const mockCourses: Course[] = [
-  {
-    id: '1',
-    title: 'Information Security Fundamentals',
-    category: 'Mandatory Compliance',
-    duration: '45 mins',
-    modules: 5,
-    status: 'in_progress',
-    progress: 60,
-    dueDate: 'Oct 30, 2026',
-    thumbnail: 'bg-gradient-to-br from-blue-900 to-indigo-900'
-  },
-  {
-    id: '2',
-    title: 'Anti-Harassment Training 2026',
-    category: 'Mandatory Compliance',
-    duration: '60 mins',
-    modules: 4,
-    status: 'completed',
-    progress: 100,
-    thumbnail: 'bg-gradient-to-br from-emerald-900 to-teal-900'
-  },
-  {
-    id: '3',
-    title: 'Advanced Leadership Principles',
-    category: 'Professional Development',
-    duration: '3 hours',
-    modules: 12,
-    status: 'not_started',
-    progress: 0,
-    thumbnail: 'bg-gradient-to-br from-purple-900 to-fuchsia-900'
-  }
-]
+import { learningApi, type CourseEnrollment, type Course } from '@/api/learning'
 
 export default function LearningCenter() {
   const [activeTab, setActiveTab] = useState<'my_learning' | 'catalog' | 'certificates'>('my_learning')
-  const [courses, setCourses] = useState<Course[]>(mockCourses)
+  const queryClient = useQueryClient()
+
+  const { data: myLearning = [] } = useQuery({
+    queryKey: ['myLearning'],
+    queryFn: learningApi.getMyLearning
+  })
+
+  const { data: catalog = [] } = useQuery({
+    queryKey: ['courseCatalog'],
+    queryFn: learningApi.getCatalog
+  })
+
+  const launchMutation = useMutation({
+    mutationFn: learningApi.launchCourse,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myLearning'] })
+      toast.success('Course Launched', 'Loading training modules...')
+    }
+  })
 
   const handleStartCourse = (id: string) => {
     toast.success('Course Launched', 'Loading training modules...')
@@ -134,7 +108,7 @@ export default function LearningCenter() {
             <div>
               <h2 className="text-lg font-bold text-nexus-100 mb-4">Assigned to You</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {courses.filter(c => c.status !== 'completed').map(course => (
+                {myLearning.filter((c: CourseEnrollment) => c.status !== 'COMPLETED').map((course: CourseEnrollment) => (
                   <GlassCard key={course.id} className="flex flex-col overflow-hidden group hover:border-accent-indigo/50 transition-all">
                     <div className={`h-32 ${course.thumbnail} relative flex items-center justify-center`}>
                       <PlayCircle className="h-12 w-12 text-white/50 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer" onClick={() => handleStartCourse(course.id)} />
@@ -150,7 +124,7 @@ export default function LearningCenter() {
                       
                       <div className="flex items-center justify-between text-xs text-nexus-400 mb-4 mt-auto">
                         <div className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {course.duration}</div>
-                        <div className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> {course.modules} Modules</div>
+                        <div className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> {course.totalModules} Modules</div>
                       </div>
 
                       <div className="space-y-2">
@@ -185,7 +159,7 @@ export default function LearningCenter() {
 
         {activeTab === 'certificates' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.filter(c => c.status === 'completed').map(course => (
+            {myLearning.filter((c: CourseEnrollment) => c.status === 'COMPLETED').map((course: CourseEnrollment) => (
               <GlassCard key={course.id} className="p-6 flex flex-col items-center text-center relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-success/10 blur-3xl rounded-full" />
                 <Award className="h-16 w-16 text-success mb-4" />

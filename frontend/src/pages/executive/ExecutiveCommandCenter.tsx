@@ -26,7 +26,7 @@ export default function ExecutiveCommandCenter() {
 
   // Initialize live STOMP connection and set initial activity when dashboard mounts
   useEffect(() => {
-    connectRealtime('mock-token-for-live')
+    connectRealtime(localStorage.getItem('nexushr_token') || '')
     if (data?.recentActivity) {
       // Add missing avatar data to recentActivity (you could add this to backend DTO as well)
       const formattedActivities = data.recentActivity.map(a => ({

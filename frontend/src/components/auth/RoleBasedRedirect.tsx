@@ -2,6 +2,20 @@ import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 
+// Client-side role-to-dashboard mapping (fallback if backend doesn't provide dashboardUrl)
+const ROLE_DASHBOARD_MAP: Record<string, string> = {
+  'ROLE_SUPER_ADMIN': '/executive',
+  'ROLE_ADMIN': '/dashboard',
+  'ROLE_HR_DIRECTOR': '/dashboard/hr',
+  'ROLE_HR_EXECUTIVE': '/dashboard/hr-exec',
+  'ROLE_FINANCE_MANAGER': '/dashboard/finance',
+  'ROLE_DEPARTMENT_MANAGER': '/dashboard/dept-manager',
+  'ROLE_MANAGER': '/dashboard/manager',
+  'ROLE_TEAM_LEAD': '/dashboard/team-lead',
+  'ROLE_AUDITOR': '/dashboard/auditor',
+  'ROLE_EMPLOYEE': '/dashboard/employee',
+}
+
 export default function RoleBasedRedirect() {
   const { user, isInitialized, isAuthenticated } = useAuthStore()
 
@@ -13,66 +27,14 @@ export default function RoleBasedRedirect() {
     return <Navigate to="/login" replace />
   }
 
-  const role = user.role
-
-  // Super Admin → Executive Command Center
-  if (role === 'ROLE_SUPER_ADMIN') {
-    return <Navigate to="/executive" replace />
+  // 1. Use the dynamic dashboard URL provided by the backend (from the roles table)
+  if (user.dashboardUrl && user.dashboardUrl !== '/dashboard/employee') {
+    return <Navigate to={user.dashboardUrl} replace />
   }
 
-  // Admin → Admin Dashboard
-  if (role === 'ROLE_ADMIN') {
-    return <Navigate to="/dashboard" replace />
-  }
-
-  // HR Director → HR Dashboard
-  if (role === 'ROLE_HR_DIRECTOR') {
-    return <Navigate to="/dashboard/hr" replace />
-  }
-
-  // HR Executive → HR Executive Dashboard
-  if (role === 'ROLE_HR_EXECUTIVE') {
-    return <Navigate to="/dashboard/hr-exec" replace />
-  }
-
-  // Finance Manager → Finance Dashboard
-  if (role === 'ROLE_FINANCE_MANAGER') {
-    return <Navigate to="/dashboard/finance" replace />
-  }
-
-  // Department Manager → Dept Manager Dashboard
-  if (role === 'ROLE_DEPARTMENT_MANAGER') {
-    return <Navigate to="/dashboard/dept-manager" replace />
-  }
-
-  // Manager → Manager Dashboard
-  if (role === 'ROLE_MANAGER') {
-    return <Navigate to="/dashboard/manager" replace />
-  }
-
-  // Team Lead → Team Lead Dashboard
-  if (role === 'ROLE_TEAM_LEAD') {
-    return <Navigate to="/dashboard/team-lead" replace />
-  }
-
-  // Auditor → Auditor Dashboard
-  if (role === 'ROLE_AUDITOR') {
-    return <Navigate to="/dashboard/auditor" replace />
-  }
-
-  // Fallback: check for common role patterns
-  if (role?.startsWith('ROLE_HR')) {
-    return <Navigate to="/dashboard/hr" replace />
-  }
-
-  if (role?.startsWith('ROLE_FINANCE')) {
-    return <Navigate to="/dashboard/finance" replace />
-  }
-
-  if (role?.endsWith('MANAGER') || role?.endsWith('LEAD')) {
-    return <Navigate to="/dashboard/manager" replace />
-  }
-
-  // Default for normal employees and any unrecognized roles
-  return <Navigate to="/dashboard/employee" replace />
+  // 2. Client-side fallback based on role name
+  const role = user.role || 'ROLE_EMPLOYEE'
+  const dashboardPath = ROLE_DASHBOARD_MAP[role] || ROLE_DASHBOARD_MAP[`ROLE_${role}`] || '/dashboard/employee'
+  
+  return <Navigate to={dashboardPath} replace />
 }

@@ -141,7 +141,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
         
         log.info("Starting Database Seeder... Generating 60 Employees");
-        String defaultPassword = passwordEncoder.encode("1234");
+        String defaultPassword = passwordEncoder.encode("123456");
 
         // Ensure roles exist
         Role employeeRole = roleRepository.findByName("ROLE_EMPLOYEE").orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_EMPLOYEE").description("Standard Employee").build()));

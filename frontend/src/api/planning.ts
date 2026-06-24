@@ -45,7 +45,23 @@ export interface SuccessionBench {
   notes: string
 }
 
+export interface CareerRoleNode {
+  id: string
+  title: string
+  level: string
+  track: 'ic' | 'management'
+  baseRange: [number, number]
+  status: 'current' | 'next' | 'future'
+  description: string
+  requirements: string[]
+}
+
 export const planningApi = {
+  getCareerPaths: async (): Promise<Record<string, CareerRoleNode[]>> => {
+    const res = await apiClient.get<ApiResponse<Record<string, CareerRoleNode[]>>>('/planning/career-paths')
+    return res.data.data
+  },
+
   getCycles: async (): Promise<CompensationCycle[]> => {
     const res = await apiClient.get<ApiResponse<CompensationCycle[]>>('/planning/compensation/cycles')
     return res.data.data

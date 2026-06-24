@@ -2,9 +2,11 @@ package com.nexushr.config;
 
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -13,9 +15,11 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @EnableCaching
+@Slf4j
 public class AppCacheConfig {
 
     private com.fasterxml.jackson.databind.ObjectMapper redisObjectMapper() {
@@ -46,17 +50,27 @@ public class AppCacheConfig {
     }
 
     @Bean
+    @Primary
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper());
-        
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60)) // Set standard TTL
-                .disableCachingNullValues()
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
+        try {
+            // Test Redis connection first
+            connectionFactory.getConnection().ping();
 
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
-                .build();
+            GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper());
+            
+            RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                    .entryTtl(Duration.ofMinutes(5)) // 5 minute TTL for dashboard data
+                    .disableCachingNullValues()
+                    .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
+
+            log.info("✅ Redis is available. Using RedisCacheManager for caching.");
+            return RedisCacheManager.builder(connectionFactory)
+                    .cacheDefaults(config)
+                    .build();
+        } catch (Exception e) {
+            log.warn("⚠️  Redis is not available ({}). Falling back to in-memory ConcurrentMapCacheManager.", e.getMessage());
+            return new ConcurrentMapCacheManager("dashboard", "employees", "departments");
+        }
     }
 }

@@ -121,6 +121,12 @@ function getNavItems(role: string) {
   if (isAuditor) {
     return [
       ...base,
+      { path: '/employees', label: 'Employees', icon: Users },
+      { path: '/attendance', label: 'Attendance', icon: Clock },
+      { path: '/leaves', label: 'Leaves', icon: CalendarDays },
+      { path: '/payroll', label: 'Payroll', icon: Wallet },
+      { path: '/performance', label: 'Performance', icon: TrendingUp },
+      { path: '/reports', label: 'Reports', icon: FileText },
       { path: '/settings/audit-logs', label: 'Audit Logs', icon: FileText },
       { path: '/security/rbac', label: 'Access Control', icon: Shield },
       { path: '/settings/security', label: 'Security Center', icon: Settings },

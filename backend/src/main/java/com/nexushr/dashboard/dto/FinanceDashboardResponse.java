@@ -22,6 +22,10 @@ public class FinanceDashboardResponse {
     private List<ExpenseDto> pendingExpenses;
     private java.util.Map<String, BigDecimal> expenseTrend;
     private java.util.Map<String, BigDecimal> payrollTrend;
+    private BigDecimal totalPayrollCost;
+    private BigDecimal avgSalary;
+    private int pendingExpenseClaims;
+    private java.util.Map<String, BigDecimal> departmentPayroll;
 
     @Data
     @Builder

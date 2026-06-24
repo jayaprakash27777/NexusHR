@@ -33,7 +33,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   fetchMyPermissions: async (userId: string) => {
     try {
       const accessPreview = await authAdminApi.getAccessPreview(userId)
-      set({ 
+      set({
         userPermissions: accessPreview.effectivePermissions,
         effectiveRoles: accessPreview.effectiveRoles,
         isLoaded: true

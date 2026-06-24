@@ -110,6 +110,7 @@ public class AdminDashboardResponse implements Serializable {
         private static final long serialVersionUID = 1L;
         private String id;
         private String employeeId;
+        private String userId;
         private String name;
         private String email;
         private String department;

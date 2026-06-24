@@ -67,16 +67,16 @@ function StatsTicker() {
 }
 
 const DEMO_ACCOUNTS = [
-  { role: 'Super Admin', email: 'superadmin@nexushr.com', password: '1234', color: 'accent-violet', icon: Shield },
-  { role: 'Admin', email: 'admin@nexushr.com', password: '1234', color: 'accent-violet', icon: Shield },
-  { role: 'HR Director', email: 'hrdirector@nexushr.com', password: '1234', color: 'accent-indigo', icon: Users },
-  { role: 'HR Executive', email: 'hrexecutive@nexushr.com', password: '1234', color: 'accent-indigo', icon: Users },
-  { role: 'Finance Manager', email: 'financemanager@nexushr.com', password: '1234', color: 'accent-emerald', icon: Zap },
-  { role: 'Department Manager', email: 'deptmanager@nexushr.com', password: '1234', color: 'accent-blue', icon: Users },
-  { role: 'Team Lead', email: 'teamlead@nexushr.com', password: '1234', color: 'accent-blue', icon: Users },
-  { role: 'Auditor', email: 'auditor@nexushr.com', password: '1234', color: 'accent-orange', icon: Eye },
-  { role: 'Employee 1', email: 'employee1@nexushr.com', password: '1234', color: 'accent-teal', icon: Zap },
-  { role: 'Employee 2', email: 'employee2@nexushr.com', password: '1234', color: 'accent-teal', icon: Zap },
+  { role: 'Super Admin', email: 'superadmin@nexushr.com', password: '123456', color: 'accent-violet', icon: Shield },
+  { role: 'Admin', email: 'admin@nexushr.com', password: '123456', color: 'accent-violet', icon: Shield },
+  { role: 'HR Director', email: 'hrdirector@nexushr.com', password: '123456', color: 'accent-indigo', icon: Users },
+  { role: 'HR Executive', email: 'hrexecutive@nexushr.com', password: '123456', color: 'accent-indigo', icon: Users },
+  { role: 'Finance Manager', email: 'financemanager@nexushr.com', password: '123456', color: 'accent-emerald', icon: Zap },
+  { role: 'Department Manager', email: 'deptmanager@nexushr.com', password: '123456', color: 'accent-blue', icon: Users },
+  { role: 'Team Lead', email: 'teamlead@nexushr.com', password: '123456', color: 'accent-blue', icon: Users },
+  { role: 'Auditor', email: 'auditor@nexushr.com', password: '123456', color: 'accent-orange', icon: Eye },
+  { role: 'Employee 1', email: 'employee1@nexushr.com', password: '123456', color: 'accent-teal', icon: Zap },
+  { role: 'Employee 2', email: 'employee2@nexushr.com', password: '123456', color: 'accent-teal', icon: Zap },
 ]
 
 export default function LoginPage() {
@@ -117,10 +117,20 @@ export default function LoginPage() {
     try {
       const response = await authApi.login({ email, password })
       login(response.user, response.accessToken, response.refreshToken)
-      navigate('/dashboard')
+      navigate('/')
     } catch (err: any) {
-      const message = err?.response?.data?.message || 'Invalid credentials. Please try again.'
-      setError(message)
+      if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
+        setError('Unable to reach the server. Please check your internet connection or try again later.')
+      } else if (err?.response?.status === 401) {
+        setError('Invalid email or password. Please check your credentials.')
+      } else if (err?.response?.status === 403) {
+        setError('Your account has been locked. Please contact an administrator.')
+      } else if (err?.response?.status >= 500) {
+        setError('Server error. The backend may be starting up — please try again in a moment.')
+      } else {
+        const message = err?.response?.data?.message || err?.response?.data?.error || 'Login failed. Please try again.'
+        setError(message)
+      }
     } finally {
       setLoading(false)
     }
@@ -283,14 +293,12 @@ export default function LoginPage() {
                 <label htmlFor="login-email" className="mb-2 block text-xs font-medium uppercase tracking-wider text-white/40">
                   Work Email
                 </label>
-                <div className={`relative rounded-xl border transition-all duration-300 ${
-                  focusedField === 'email'
+                <div className={`relative rounded-xl border transition-all duration-300 ${focusedField === 'email'
                     ? 'border-accent-indigo/50 bg-accent-indigo/5 shadow-lg shadow-accent-indigo/10'
                     : 'border-white/[0.08] bg-white/[0.03] hover:border-white/[0.15]'
-                }`}>
-                  <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
-                    focusedField === 'email' ? 'text-accent-indigo' : 'text-white/20'
-                  }`} />
+                  }`}>
+                  <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${focusedField === 'email' ? 'text-accent-indigo' : 'text-white/20'
+                    }`} />
                   <input
                     id="login-email"
                     type="email"
@@ -311,14 +319,12 @@ export default function LoginPage() {
                 <label htmlFor="login-password" className="mb-2 block text-xs font-medium uppercase tracking-wider text-white/40">
                   Password
                 </label>
-                <div className={`relative rounded-xl border transition-all duration-300 ${
-                  focusedField === 'password'
+                <div className={`relative rounded-xl border transition-all duration-300 ${focusedField === 'password'
                     ? 'border-accent-indigo/50 bg-accent-indigo/5 shadow-lg shadow-accent-indigo/10'
                     : 'border-white/[0.08] bg-white/[0.03] hover:border-white/[0.15]'
-                }`}>
-                  <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
-                    focusedField === 'password' ? 'text-accent-indigo' : 'text-white/20'
-                  }`} />
+                  }`}>
+                  <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${focusedField === 'password' ? 'text-accent-indigo' : 'text-white/20'
+                    }`} />
                   <input
                     id="login-password"
                     type={showPassword ? 'text' : 'password'}
@@ -379,7 +385,7 @@ export default function LoginPage() {
               >
                 {/* Shimmer effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                
+
                 {loading ? (
                   <div className="flex items-center gap-3">
                     <motion.div
@@ -418,11 +424,10 @@ export default function LoginPage() {
                     key={account.role}
                     type="button"
                     onClick={() => fillDemoAccount(i)}
-                    className={`group relative flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all duration-300 ${
-                      isSelected
+                    className={`group relative flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all duration-300 ${isSelected
                         ? `border-${account.color}/30 bg-${account.color}/10`
                         : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04]'
-                    }`}
+                      }`}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + i * 0.08 }}

@@ -62,14 +62,18 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> logout(
             @Valid @RequestBody TokenRefreshRequest request,
             HttpServletRequest servletRequest) {
-            
+
         String bearerToken = servletRequest.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             String jwt = bearerToken.substring(7);
-            // Blacklist for 1 hour (default token expiration)
-            redisTemplate.opsForValue().set("jwt_blacklist:" + jwt, "revoked", 1, TimeUnit.HOURS);
+            try {
+                // Blacklist for 1 hour (default token expiration)
+                redisTemplate.opsForValue().set("jwt_blacklist:" + jwt, "revoked", 1, TimeUnit.HOURS);
+            } catch (Exception e) {
+                // Redis unavailable — token won't be blacklisted but logout still proceeds
+            }
         }
-        
+
         return ResponseEntity.ok(authService.logout(request.getRefreshToken()));
     }
 
@@ -100,7 +104,8 @@ public class AuthController {
     public ResponseEntity<ApiResponse<List<RefreshToken>>> getActiveSessions(
             @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                        "User not found"));
         return ResponseEntity.ok(authService.getActiveSessions(user.getId()));
     }
 
@@ -110,7 +115,8 @@ public class AuthController {
             @PathVariable Long tokenId,
             @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                        "User not found"));
         return ResponseEntity.ok(authService.revokeSession(user.getId(), tokenId));
     }
 
@@ -121,21 +127,31 @@ public class AuthController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                        "User not found"));
         return ResponseEntity.ok(authService.getLoginHistory(user.getId(), page, size));
     }
 
     @GetMapping("/me")
     @Operation(summary = "Get current user", description = "Returns the currently authenticated user's details")
-    public ResponseEntity<ApiResponse<AuthUserDto>> getCurrentUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+    public ResponseEntity<ApiResponse<AuthUserDto>> getCurrentUser(
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
         // Fetch real User entity using the email (username) from UserDetails
         User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("User not found"));
-        
-        String role = user.getUserRoles().stream()
-                .map(ur -> ur.getRole().getName())
-                .findFirst()
-                .orElse("EMPLOYEE");
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+                        "User not found"));
+
+        com.nexushr.auth.model.Role primaryRole = user.getUserRoles().stream()
+                .map(com.nexushr.auth.model.UserRole::getRole)
+                .min((r1, r2) -> {
+                    if (r1.getName().equals("ROLE_EMPLOYEE")) return 1;
+                    if (r2.getName().equals("ROLE_EMPLOYEE")) return -1;
+                    return 0;
+                })
+                .orElse(null);
+
+        String role = primaryRole != null ? primaryRole.getName() : "ROLE_EMPLOYEE";
+        String dashboardUrl = primaryRole != null ? primaryRole.getDefaultDashboard() : "/dashboard/employee";
 
         AuthUserDto dto = AuthUserDto.builder()
                 .id(user.getId())
@@ -143,6 +159,7 @@ public class AuthController {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(role)
+                .dashboardUrl(dashboardUrl)
                 .avatar(user.getAvatarUrl())
                 .build();
 

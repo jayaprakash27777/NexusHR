@@ -64,7 +64,8 @@ apiClient.interceptors.response.use(
 
       try {
         const response = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken })
-        const { accessToken, refreshToken: newRefreshToken } = response.data
+        const responseData = response.data?.data || response.data
+        const { accessToken, refreshToken: newRefreshToken } = responseData
         localStorage.setItem('nexushr_token', accessToken)
         if (newRefreshToken) localStorage.setItem('nexushr_refresh_token', newRefreshToken)
         processQueue(null, accessToken)

@@ -3,6 +3,7 @@ import apiClient, { type ApiResponse, type PagedResponse } from './client'
 export interface Employee {
   id: string
   employeeId: string
+  userId?: string
   firstName: string
   lastName: string
   fullName: string
