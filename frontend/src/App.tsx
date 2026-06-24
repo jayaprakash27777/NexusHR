@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { useAuthStore } from './store'
+import { useFeatureStore } from './store/features'
 import DashboardLayout from './layouts/DashboardLayout'
 import LoadingScreen from './components/ui/LoadingScreen'
 import ErrorBoundary from './components/ui/ErrorBoundary'
@@ -81,9 +82,11 @@ export default function App() {
   const applyTheme = useTenantStore((s) => s.applyTheme)
   const initializeAuth = useAuthStore((s) => s.initializeAuth)
   const fetchMyPermissions = usePermissionStore((s) => s.fetchMyPermissions)
+  const fetchFlags = useFeatureStore((s) => s.fetchFlags)
 
   useEffect(() => {
     applyTheme()
+    fetchFlags()
     initializeAuth().then(() => {
       // Once authenticated, fetch granular permissions
       const userId = useAuthStore.getState().user?.id
@@ -91,7 +94,7 @@ export default function App() {
         fetchMyPermissions(userId)
       }
     })
-  }, [applyTheme, initializeAuth, fetchMyPermissions])
+  }, [applyTheme, initializeAuth, fetchMyPermissions, fetchFlags])
 
   return (
     <ErrorBoundary>

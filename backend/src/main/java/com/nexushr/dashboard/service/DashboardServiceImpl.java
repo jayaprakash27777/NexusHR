@@ -176,7 +176,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .map(history -> AdminDashboardResponse.ActivityEventDto.builder()
                         .id(history.getId().toString())
                         .type(history.getStatus().equals("SUCCESS") ? "CHECK_IN" : "FAILED_LOGIN")
-                        .user(history.getUser() != null ? history.getUser().getUsername() : "Unknown")
+                        .user(history.getUser() != null ? history.getUser().getFullName() : "Unknown")
                         .message(history.getStatus().equals("SUCCESS") ? "Successfully logged into NexusHR" : "Login attempt failed: " + (history.getFailureReason() != null ? history.getFailureReason() : "Invalid credentials"))
                         .timestamp(history.getCreatedAt().toString())
                         .build())
