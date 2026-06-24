@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   DollarSign, TrendingUp, AlertCircle, Save, ChevronDown, 
   Percent, ArrowRight, BarChart2, ShieldAlert
@@ -7,45 +8,80 @@ import {
 import PageTransition from '@/components/animation/PageTransition'
 import GlassCard from '@/components/ui/GlassCard'
 import { toast } from '@/store/toast'
-
-interface EmployeeComp {
-  id: string
-  name: string
-  role: string
-  department: string
-  currentSalary: number
-  compBand: [number, number] // [min, max]
-  compaRatio: number
-  proposedIncrease: number
-  proposedBonus: number
-  performanceScore: number
-}
-
-const mockCompData: EmployeeComp[] = [
-  { id: '1', name: 'Sarah Jenkins', role: 'VP Engineering', department: 'Engineering', currentSalary: 240000, compBand: [200000, 280000], compaRatio: 1.0, proposedIncrease: 5.0, proposedBonus: 40000, performanceScore: 4.8 },
-  { id: '2', name: 'Mike Ross', role: 'Eng Manager', department: 'Engineering', currentSalary: 160000, compBand: [150000, 210000], compaRatio: 0.88, proposedIncrease: 12.0, proposedBonus: 20000, performanceScore: 4.9 },
-  { id: '3', name: 'Elena Rodriguez', role: 'Finance Director', department: 'Finance', currentSalary: 185000, compBand: [160000, 220000], compaRatio: 0.97, proposedIncrease: 4.0, proposedBonus: 25000, performanceScore: 4.2 },
-  { id: '4', name: 'David Chen', role: 'Account Executive', department: 'Sales', currentSalary: 110000, compBand: [100000, 150000], compaRatio: 0.88, proposedIncrease: 8.0, proposedBonus: 50000, performanceScore: 4.5 }
-]
+import { planningApi, type CompensationProposal, type CompensationCycle } from '@/api/planning'
 
 export default function CompensationPlanner() {
-  const [data, setData] = useState<EmployeeComp[]>(mockCompData)
-  const [budget] = useState(450000)
+  const queryClient = useQueryClient()
+  
+  // Hardcoding cycleId to fetch the first available cycle for now, 
+  // or we can fetch cycles first, then proposals.
+  const { data: cycles } = useQuery({
+    queryKey: ['compCycles'],
+    queryFn: planningApi.getCycles
+  })
+
+  const activeCycle = cycles?.[0]
+  const cycleId = activeCycle?.id
+
+  const { data: proposals, isLoading } = useQuery({
+    queryKey: ['compProposals', cycleId],
+    queryFn: () => planningApi.getProposals(cycleId!),
+    enabled: !!cycleId
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: (data: { id: string, payload: Partial<CompensationProposal> }) => 
+      planningApi.updateProposal(data.id, data.payload),
+    onSuccess: () => {
+      // Don't invalidate immediately while typing, handled by debounce or blur usually, 
+      // but for simple numeric inputs we might just keep local state if it's too janky.
+      // We'll rely on server state for now to keep it simple.
+    }
+  })
+
+  // To prevent typing lag, we should ideally use a local state synced with server state.
+  // Here we use a simple local state that is initialized from server state.
+  const [localProposals, setLocalProposals] = useState<Record<string, CompensationProposal>>({})
+
+  // Update local copy when server data arrives
+  if (proposals && Object.keys(localProposals).length === 0) {
+    const initial: Record<string, CompensationProposal> = {}
+    proposals.forEach(p => initial[p.id] = p)
+    setLocalProposals(initial)
+  }
+
+  const handleUpdate = (id: string, field: keyof CompensationProposal, value: any) => {
+    setLocalProposals(prev => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value }
+    }))
+  }
+
+  const handleSave = async () => {
+    try {
+      const promises = Object.values(localProposals).map(p => 
+        planningApi.updateProposal(p.id, {
+          proposedIncrease: p.proposedIncrease,
+          proposedBonus: p.proposedBonus
+        })
+      )
+      await Promise.all(promises)
+      queryClient.invalidateQueries({ queryKey: ['compProposals'] })
+      toast.success('Merit Cycle Saved', 'Your proposed compensation adjustments have been saved for HR review.')
+    } catch (e) {
+      toast.error('Save Failed', 'Failed to save compensation adjustments.')
+    }
+  }
+
+  const displayData = proposals?.map(p => localProposals[p.id] || p) || []
+  const budget = activeCycle?.totalBudget || 450000
 
   const calculateTotalIncrease = () => {
-    return data.reduce((sum, emp) => sum + (emp.currentSalary * (emp.proposedIncrease / 100)), 0)
+    return displayData.reduce((sum, emp) => sum + (emp.currentSalary * (emp.proposedIncrease / 100)), 0)
   }
 
   const calculateTotalBonus = () => {
-    return data.reduce((sum, emp) => sum + emp.proposedBonus, 0)
-  }
-
-  const handleUpdate = (id: string, field: 'proposedIncrease' | 'proposedBonus', value: number) => {
-    setData(data.map(d => d.id === id ? { ...d, [field]: value } : d))
-  }
-
-  const handleSave = () => {
-    toast.success('Merit Cycle Saved', 'Your proposed compensation adjustments have been saved for HR review.')
+    return displayData.reduce((sum, emp) => sum + emp.proposedBonus, 0)
   }
 
   const totalSpend = calculateTotalIncrease() + calculateTotalBonus()
@@ -137,16 +173,18 @@ export default function CompensationPlanner() {
 
               {/* Rows */}
               <div className="space-y-4 pt-4">
-                {data.map(emp => {
-                  const bandMidpoint = (emp.compBand[0] + emp.compBand[1]) / 2;
+                {displayData.map(emp => {
+                  const bandMin = emp.bandMin || 100000;
+                  const bandMax = emp.bandMax || 200000;
+                  const bandMidpoint = (bandMin + bandMax) / 2;
                   const ratio = emp.currentSalary / bandMidpoint;
                   const newSalary = emp.currentSalary * (1 + (emp.proposedIncrease / 100));
 
                   return (
                     <div key={emp.id} className="grid grid-cols-12 gap-4 items-center p-3 rounded-lg border border-transparent hover:border-white/10 hover:bg-white/5 transition-colors">
                       <div className="col-span-3">
-                        <div className="font-bold text-nexus-50">{emp.name}</div>
-                        <div className="text-xs text-nexus-400">{emp.role} • {emp.department}</div>
+                        <div className="font-bold text-nexus-50">{emp.employeeName}</div>
+                        <div className="text-xs text-nexus-400">{emp.role} • {emp.departmentName}</div>
                       </div>
                       
                       <div className="col-span-1 flex justify-center">
@@ -168,15 +206,15 @@ export default function CompensationPlanner() {
 
                       <div className="col-span-2 px-4">
                         <div className="flex justify-between text-[10px] text-nexus-400 mb-1 font-mono">
-                          <span>${(emp.compBand[0]/1000).toFixed(0)}k</span>
-                          <span>${(emp.compBand[1]/1000).toFixed(0)}k</span>
+                          <span>${(bandMin/1000).toFixed(0)}k</span>
+                          <span>${(bandMax/1000).toFixed(0)}k</span>
                         </div>
                         <div className="h-1.5 w-full bg-nexus-900 rounded-full relative">
                           <div 
                             className={`absolute top-0 bottom-0 w-1.5 rounded-full -translate-x-1/2 shadow-[0_0_5px_currentColor] ${
                               ratio < 0.9 ? 'bg-warning text-warning' : ratio > 1.1 ? 'bg-danger text-danger' : 'bg-success text-success'
                             }`}
-                            style={{ left: `${((emp.currentSalary - emp.compBand[0]) / (emp.compBand[1] - emp.compBand[0])) * 100}%` }}
+                            style={{ left: `${((emp.currentSalary - bandMin) / (bandMax - bandMin)) * 100}%` }}
                           />
                         </div>
                         <div className={`text-[10px] text-center mt-1 font-bold ${

@@ -15,5 +15,9 @@ public class CompensationProposalDto {
     private BigDecimal proposedBonus;
     private BigDecimal performanceScore;
     private BigDecimal compaRatio;
+    private BigDecimal bandMin;
+    private BigDecimal bandMax;
+    private String role;
+    private String departmentName;
     private String justification;
 }

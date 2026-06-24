@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { 
   Crown, UserPlus, AlertTriangle, ShieldCheck, 
   ChevronRight, TrendingUp, UserMinus, Plus
@@ -7,59 +8,28 @@ import {
 import PageTransition from '@/components/animation/PageTransition'
 import GlassCard from '@/components/ui/GlassCard'
 import { toast } from '@/store/toast'
-
-interface Successor {
-  id: string
-  name: string
-  currentRole: string
-  readiness: 'ready_now' | 'ready_1_year' | 'ready_3_years'
-  flightRisk: 'low' | 'medium' | 'high'
-}
-
-interface KeyRole {
-  id: string
-  title: string
-  incumbent: string
-  incumbentRisk: 'low' | 'medium' | 'high'
-  department: string
-  successors: Successor[]
-}
-
-const mockKeyRoles: KeyRole[] = [
-  {
-    id: '1',
-    title: 'Chief Technology Officer',
-    incumbent: 'Marcus Chen',
-    incumbentRisk: 'medium',
-    department: 'Executive',
-    successors: [
-      { id: 's1', name: 'Sarah Jenkins', currentRole: 'VP Engineering', readiness: 'ready_now', flightRisk: 'low' },
-      { id: 's2', name: 'David Lee', currentRole: 'Director, Platform', readiness: 'ready_1_year', flightRisk: 'medium' }
-    ]
-  },
-  {
-    id: '2',
-    title: 'VP of Global Sales',
-    incumbent: 'Amanda Smith',
-    incumbentRisk: 'high',
-    department: 'Sales',
-    successors: [
-      { id: 's3', name: 'James Wilson', currentRole: 'Director, EMEA Sales', readiness: 'ready_1_year', flightRisk: 'high' }
-    ]
-  },
-  {
-    id: '3',
-    title: 'Lead Security Architect',
-    incumbent: 'Robert Taylor',
-    incumbentRisk: 'low',
-    department: 'Engineering',
-    successors: []
-  }
-]
+import { planningApi, type SuccessionRole, type SuccessionBench } from '@/api/planning'
 
 export default function SuccessionPlanner() {
-  const [activeRole, setActiveRole] = useState<KeyRole>(mockKeyRoles[0])
+  const { data: roles = [] } = useQuery({
+    queryKey: ['successionRoles'],
+    queryFn: planningApi.getSuccessionRoles
+  })
+
+  const [activeRole, setActiveRole] = useState<SuccessionRole | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    if (roles.length > 0 && !activeRole) {
+      setActiveRole(roles[0])
+    }
+  }, [roles, activeRole])
+
+  const { data: bench = [] } = useQuery({
+    queryKey: ['successionBench', activeRole?.id],
+    queryFn: () => planningApi.getBenchForRole(activeRole!.id),
+    enabled: !!activeRole?.id
+  })
 
   const handleAddSuccessor = () => {
     toast.success('Talent Pool Opened', 'Select an employee to add to the succession bench.')
@@ -114,36 +84,27 @@ export default function SuccessionPlanner() {
             </div>
             
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2">
-              {mockKeyRoles.map(role => (
+              {roles.map(role => (
                 <div
                   key={role.id}
                   onClick={() => setActiveRole(role)}
                   className={`p-3 rounded-xl border transition-all cursor-pointer group ${
-                    activeRole.id === role.id 
+                    activeRole?.id === role.id 
                       ? 'bg-accent-indigo/10 border-accent-indigo shadow-[0_0_15px_rgba(99,102,241,0.15)]' 
                       : 'bg-white/5 border-transparent hover:bg-white/10'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <div className={`font-bold text-sm ${activeRole.id === role.id ? 'text-accent-indigo' : 'text-nexus-50'}`}>
+                    <div className={`font-bold text-sm ${activeRole?.id === role.id ? 'text-accent-indigo' : 'text-nexus-50'}`}>
                       {role.title}
                     </div>
-                    {role.successors.length === 0 && (
-                      <AlertTriangle className="h-4 w-4 text-danger flex-shrink-0" />
-                    )}
                   </div>
-                  <div className="text-xs text-nexus-400 mb-3">{role.department} • Incumbent: {role.incumbent}</div>
+                  <div className="text-xs text-nexus-400 mb-3">{role.departmentName} • Incumbent: {role.incumbentName}</div>
                   
                   <div className="flex items-center gap-1">
-                    {role.successors.length > 0 ? (
-                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-success">
-                        <ShieldCheck className="h-3 w-3" /> Bench Strength: {role.successors.length}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-danger">
-                        <UserMinus className="h-3 w-3" /> Critical Risk
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-success">
+                      <ShieldCheck className="h-3 w-3" /> View Bench
+                    </div>
                   </div>
                 </div>
               ))}
@@ -153,12 +114,13 @@ export default function SuccessionPlanner() {
 
         {/* Succession Bench Details */}
         <div className="flex-1">
+          {activeRole && (
           <GlassCard className="p-6 h-full flex flex-col">
             <div className="mb-8 flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 text-sm text-nexus-400 mb-2">
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-white/10 bg-white/5">
-                    {activeRole.department}
+                    {activeRole.departmentName}
                   </span>
                   <ChevronRight className="h-3 w-3" /> Critical Role
                 </div>
@@ -169,13 +131,13 @@ export default function SuccessionPlanner() {
                     <div className="text-xs text-nexus-400 uppercase tracking-wider font-semibold mb-1">Current Incumbent</div>
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-nexus-800 flex items-center justify-center font-bold text-nexus-300">
-                        {activeRole.incumbent.split(' ').map(n => n[0]).join('')}
+                        {activeRole.incumbentName.split(' ').map((n: string) => n[0]).join('')}
                       </div>
                       <div>
-                        <div className="font-bold text-white">{activeRole.incumbent}</div>
+                        <div className="font-bold text-white">{activeRole.incumbentName}</div>
                         <div className="text-xs flex items-center gap-1 mt-0.5">
                           <span className="text-nexus-400">Flight Risk:</span>
-                          <span className={`font-bold ${activeRole.incumbentRisk === 'high' ? 'text-danger' : activeRole.incumbentRisk === 'medium' ? 'text-warning' : 'text-success'}`}>
+                          <span className={`font-bold ${activeRole.incumbentRisk.toLowerCase() === 'high' ? 'text-danger' : activeRole.incumbentRisk.toLowerCase() === 'medium' ? 'text-warning' : 'text-success'}`}>
                             {activeRole.incumbentRisk.toUpperCase()}
                           </span>
                         </div>
@@ -196,7 +158,7 @@ export default function SuccessionPlanner() {
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              {activeRole.successors.length === 0 ? (
+              {bench.length === 0 ? (
                 <div className="h-48 flex flex-col items-center justify-center text-nexus-500 border-2 border-dashed border-danger/30 rounded-xl bg-danger/5">
                   <AlertTriangle className="h-10 w-10 mb-3 text-danger/50" />
                   <p className="font-medium text-danger">No Successors Identified</p>
@@ -207,7 +169,7 @@ export default function SuccessionPlanner() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {activeRole.successors.map((successor, index) => (
+                  {bench.map((successor, index) => (
                     <div key={successor.id} className="p-5 rounded-xl border border-white/10 bg-nexus-900/50 flex items-center gap-6 group hover:border-white/20 transition-all">
                       <div className="text-4xl font-bold text-nexus-800 group-hover:text-nexus-700 transition-colors">
                         #{index + 1}
@@ -215,11 +177,11 @@ export default function SuccessionPlanner() {
                       
                       <div className="flex items-center gap-4 flex-1">
                         <div className="h-12 w-12 rounded-full bg-accent-indigo/20 flex items-center justify-center font-bold text-accent-indigo text-lg">
-                          {successor.name.split(' ').map(n => n[0]).join('')}
+                          {successor.employeeName.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                         <div>
-                          <div className="font-bold text-nexus-50 text-lg mb-1">{successor.name}</div>
-                          <div className="text-sm text-nexus-400">{successor.currentRole}</div>
+                          <div className="font-bold text-nexus-50 text-lg mb-1">{successor.employeeName}</div>
+                          <div className="text-sm text-nexus-400">{successor.notes || 'Internal Candidate'}</div>
                         </div>
                       </div>
 
@@ -235,7 +197,7 @@ export default function SuccessionPlanner() {
 
                         <div>
                           <div className="text-[10px] text-nexus-500 uppercase tracking-wider font-semibold mb-1">Flight Risk</div>
-                          <div className={`text-sm font-bold ${successor.flightRisk === 'high' ? 'text-danger' : successor.flightRisk === 'medium' ? 'text-warning' : 'text-success'}`}>
+                          <div className={`text-sm font-bold ${successor.flightRisk.toLowerCase() === 'high' ? 'text-danger' : successor.flightRisk.toLowerCase() === 'medium' ? 'text-warning' : 'text-success'}`}>
                             {successor.flightRisk.toUpperCase()}
                           </div>
                         </div>
@@ -252,6 +214,7 @@ export default function SuccessionPlanner() {
               )}
             </div>
           </GlassCard>
+          )}
         </div>
 
       </div>

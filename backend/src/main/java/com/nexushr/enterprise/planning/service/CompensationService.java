@@ -64,11 +64,22 @@ public class CompensationService {
         dto.setCycleId(prop.getCycle().getId());
         dto.setEmployeeId(prop.getEmployee().getId());
         dto.setEmployeeName(prop.getEmployee().getFirstName() + " " + prop.getEmployee().getLastName());
+        
+        // Add role and department
+        if (prop.getEmployee().getDepartment() != null) {
+            dto.setDepartmentName(prop.getEmployee().getDepartment().getName());
+        } else {
+            dto.setDepartmentName("Unassigned");
+        }
+        dto.setRole(prop.getEmployee().getDesignation() != null ? prop.getEmployee().getDesignation() : "Employee");
+
         dto.setCurrentSalary(prop.getCurrentSalary());
         dto.setProposedIncrease(prop.getProposedIncrease());
         dto.setProposedBonus(prop.getProposedBonus());
         dto.setPerformanceScore(prop.getPerformanceScore());
         dto.setCompaRatio(prop.getCompaRatio());
+        dto.setBandMin(prop.getBandMin());
+        dto.setBandMax(prop.getBandMax());
         dto.setJustification(prop.getJustification());
         return dto;
     }
