@@ -72,7 +72,7 @@ function DashboardSkeleton() {
 export default function AdminDashboard() {
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const activityStream = useRealtimeStore((s) => s.activityStream)
+
   const [chartView, setChartView] = useState<'attendance' | 'payroll'>('attendance')
   const [searchUserQuery, setSearchUserQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState<any>(null)
@@ -114,6 +114,7 @@ export default function AdminDashboard() {
   }
 
   const kpis = dashboard
+  const activityStream = dashboard?.recentActivity || []
   const deptData = dashboard?.employeesByDepartment
     ? Object.entries(dashboard.employeesByDepartment).map(([name, count], i) => ({
         name,
@@ -607,7 +608,7 @@ export default function AdminDashboard() {
 
       {/* Bottom Row — Device Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DeviceActivityWidget />
+        <DeviceActivityWidget devices={dashboard?.deviceActivity || []} />
         
         {/* Critical Alerts */}
         <GlassCard className="p-6" delay={0.6}>
@@ -846,14 +847,19 @@ export default function AdminDashboard() {
                 { label: 'Reset Password', icon: Zap, color: 'accent-orange' },
               ].map((action, i) => {
                 const Icon = action.icon
+                const toPath = action.label === 'Create Department' || action.label === 'Create Team' ? '/enterprise' 
+                  : action.label === 'Add Admin' || action.label === 'Reset Password' ? '/security/rbac'
+                  : action.label === 'Bulk Export Employees' ? '/reports'
+                  : '/employees'
                 return (
-                  <button
+                  <Link
                     key={action.label}
+                    to={toPath}
                     className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-${action.color}/10 hover:border-${action.color}/30 transition-all group`}
                   >
                     <Icon className={`w-5 h-5 text-${action.color} group-hover:scale-110 transition-transform`} />
                     <span className="text-xs text-center font-medium text-nexus-300 group-hover:text-white">{action.label}</span>
-                  </button>
+                  </Link>
                 )
               })}
             </div>

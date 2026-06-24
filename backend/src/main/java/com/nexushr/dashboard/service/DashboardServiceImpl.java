@@ -169,6 +169,39 @@ public class DashboardServiceImpl implements DashboardService {
         long failedLoginAttempts = loginHistoryRepository.countByStatus("FAILED");
         long lockedAccounts = userRepository.countByActiveFalse();
 
+        // Real Activity Stream from Login History
+        List<AdminDashboardResponse.ActivityEventDto> recentActivity = loginHistoryRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")))
+                .getContent().stream()
+                .map(history -> AdminDashboardResponse.ActivityEventDto.builder()
+                        .id(history.getId().toString())
+                        .type(history.getStatus().equals("SUCCESS") ? "CHECK_IN" : "FAILED_LOGIN")
+                        .user(history.getUser() != null ? history.getUser().getUsername() : "Unknown")
+                        .message(history.getStatus().equals("SUCCESS") ? "Successfully logged into NexusHR" : "Login attempt failed: " + (history.getFailureReason() != null ? history.getFailureReason() : "Invalid credentials"))
+                        .timestamp(history.getCreatedAt().toString())
+                        .build())
+                .collect(Collectors.toList());
+
+        // Real Device Activity Stream
+        List<AdminDashboardResponse.DeviceActivityDto> deviceActivity = loginHistoryRepository
+                .findAll(org.springframework.data.domain.PageRequest.of(0, 5, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")))
+                .getContent().stream()
+                .map(history -> {
+                    String ua = history.getUserAgent() != null ? history.getUserAgent() : "Unknown Browser";
+                    boolean isMobile = ua.toLowerCase().contains("mobile") || ua.toLowerCase().contains("android") || ua.toLowerCase().contains("iphone");
+                    return AdminDashboardResponse.DeviceActivityDto.builder()
+                            .id(history.getId().toString())
+                            .device(isMobile ? "Mobile Device" : "Desktop Workstation")
+                            .browser(ua.length() > 30 ? ua.substring(0, 30) + "..." : ua)
+                            .location(history.getLocation() != null ? history.getLocation() : "Unknown Location")
+                            .ip(history.getIpAddress() != null ? history.getIpAddress() : "Unknown IP")
+                            .lastActive(history.getCreatedAt().toString())
+                            .isCurrent(history.getStatus().equals("SUCCESS"))
+                            .type(isMobile ? "mobile" : "desktop")
+                            .build();
+                })
+                .collect(Collectors.toList());
+
         AdminDashboardResponse dashboard = AdminDashboardResponse.builder()
                 .totalEmployees(total)
                 .activeEmployees(active)
@@ -198,6 +231,8 @@ public class DashboardServiceImpl implements DashboardService {
                 .activeSessions(activeSessions)
                 .failedLoginAttempts(failedLoginAttempts)
                 .lockedAccounts(lockedAccounts)
+                .recentActivity(recentActivity)
+                .deviceActivity(deviceActivity)
                 .build();
 
         return ApiResponse.success(dashboard);

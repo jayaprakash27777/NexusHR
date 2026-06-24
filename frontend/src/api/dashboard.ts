@@ -27,12 +27,13 @@ export interface AdminDashboardResponse {
 
   employeesByDepartment: Record<string, number>
   employeesByStatus: Record<string, number>
-  attendanceTrend: AttendanceTrendPoint[]
-  payrollTrend: PayrollTrendPoint[]
-  recentActivity?: RecentActivityItem[]
-  recentlyJoinedEmployees?: EmployeeSummaryDto[]
-  recentlyResignedEmployees?: EmployeeSummaryDto[]
-  employeesOnProbation?: EmployeeSummaryDto[]
+  attendanceTrend: { month: string; rate: number; present: number; absent: number }[]
+  payrollTrend: { month: string; amount: number }[]
+  recentlyJoinedEmployees: any[]
+  recentlyResignedEmployees: any[]
+  employeesOnProbation: any[]
+  recentActivity: { id: string; type: string; user: string; message: string; timestamp: string }[]
+  deviceActivity: { id: string; device: string; browser: string; location: string; ip: string; lastActive: string; isCurrent: boolean; type: string }[]
 }
 
 export interface EmployeeSummaryDto {

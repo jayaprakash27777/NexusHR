@@ -2,30 +2,22 @@ import { Monitor, Smartphone, Globe, ShieldCheck } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import { formatDistanceToNow } from '@/lib/dateUtils'
 
-const activeDevices = [
-  {
-    id: 'dev1',
-    device: 'MacBook Pro 16"',
-    browser: 'Chrome 124.0',
-    location: 'San Francisco, CA',
-    ip: '192.168.1.42',
-    lastActive: new Date(),
-    isCurrent: true,
-    type: 'desktop'
-  },
-  {
-    id: 'dev2',
-    device: 'iPhone 15 Pro',
-    browser: 'Safari Mobile',
-    location: 'San Francisco, CA',
-    ip: '10.0.0.15',
-    lastActive: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    isCurrent: false,
-    type: 'mobile'
-  }
-]
+interface Device {
+  id: string
+  device: string
+  browser: string
+  location: string
+  ip: string
+  lastActive: string | Date
+  isCurrent: boolean
+  type: string
+}
 
-export default function DeviceActivityWidget() {
+interface DeviceActivityWidgetProps {
+  devices?: Device[]
+}
+
+export default function DeviceActivityWidget({ devices = [] }: DeviceActivityWidgetProps) {
   return (
     <GlassCard glow="indigo" className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -41,7 +33,7 @@ export default function DeviceActivityWidget() {
       </div>
 
       <div className="space-y-4">
-        {activeDevices.map(dev => (
+        {devices.map(dev => (
           <div key={dev.id} className="flex items-start gap-4 rounded-xl border border-border/50 bg-foreground/5 p-4 transition-colors hover:bg-foreground/10">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background shadow-inner border border-border/50">
               {dev.type === 'desktop' ? (

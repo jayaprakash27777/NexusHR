@@ -60,6 +60,37 @@ public class AdminDashboardResponse implements Serializable {
     private List<EmployeeSummaryDto> recentlyJoinedEmployees;
     private List<EmployeeSummaryDto> recentlyResignedEmployees;
     private List<EmployeeSummaryDto> employeesOnProbation;
+    private List<ActivityEventDto> recentActivity;
+    private List<DeviceActivityDto> deviceActivity;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ActivityEventDto implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private String id;
+        private String type;
+        private String user;
+        private String message;
+        private String timestamp;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DeviceActivityDto implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private String id;
+        private String device;
+        private String browser;
+        private String location;
+        private String ip;
+        private String lastActive;
+        private boolean isCurrent;
+        private String type;
+    }
 
     @Data
     @Builder
