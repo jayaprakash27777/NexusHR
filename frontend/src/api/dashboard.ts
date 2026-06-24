@@ -112,9 +112,18 @@ export interface HRDashboardResponse {
   attritionRate: number
   attritionRateChange: number
   avgTimeToFillDays: number
-  recentHires: any[]
-  activeRequisitions: any[]
+  newHiresThisMonth: number
+  employeesOnProbation: number
+  pendingApprovals: number
+  pendingDocuments: number
+  attendanceIssues: number
+  recentHires: { name: string; role: string; department: string; startDate: string; status: string }[]
+  activeRequisitions: { title: string; department: string; candidates: number; stage: string; progressPercentage: number }[]
   headcountTrend: Record<string, number>
+  departmentHeadcount: Record<string, number>
+  genderDistribution: Record<string, number>
+  leaveStats: Record<string, number>
+  employeesByStatus: Record<string, number>
 }
 
 export interface FinanceDashboardResponse {

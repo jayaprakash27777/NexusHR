@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -16,15 +17,28 @@ public class HRDashboardResponse {
     private double attritionRateChange;
     private long avgTimeToFillDays;
     
+    // New KPI fields
+    private long newHiresThisMonth;
+    private long employeesOnProbation;
+    private long pendingApprovals;
+    private long pendingDocuments;
+    private long attendanceIssues;
+    
+    // Data collections
     private List<RecentHireDto> recentHires;
     private List<ActiveRequisitionDto> activeRequisitions;
-    private java.util.Map<String, Long> headcountTrend;
+    private Map<String, Long> headcountTrend;
+    private Map<String, Long> departmentHeadcount;
+    private Map<String, Long> genderDistribution;
+    private Map<String, Long> leaveStats;
+    private Map<String, Long> employeesByStatus;
 
     @Data
     @Builder
     public static class RecentHireDto {
         private String name;
         private String role;
+        private String department;
         private String startDate;
         private String status;
     }
