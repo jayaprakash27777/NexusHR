@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://nexushr-fxe4.onrender.com/api'
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://nexushr-fxe4.onrender.com/api' : 'http://localhost:8080/api')
 
 export type PresenceStatus = 'ONLINE' | 'AWAY' | 'OFFLINE' | 'MEETING'
 
