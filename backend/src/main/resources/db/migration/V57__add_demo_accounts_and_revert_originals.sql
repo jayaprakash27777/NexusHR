@@ -2,33 +2,33 @@
 -- V57: Revert original emails and create separate demo accounts
 -- =============================================
 
--- 1. Revert original users' emails back to their V44 state
-UPDATE users SET email = 'david.moore1@nexushr.com' WHERE email = 'admin@nexushr.com';
-UPDATE employees SET email = 'david.moore1@nexushr.com' WHERE email = 'admin@nexushr.com';
+-- 1. Move old demo accounts out of the way to avoid conflicts
+UPDATE users SET email = 'old_admin_' || id || '@nexushr.com' WHERE email = 'admin@nexushr.com';
+UPDATE employees SET email = 'old_admin_' || id || '@nexushr.com' WHERE email = 'admin@nexushr.com';
 
-UPDATE users SET email = 'joseph.thomas2@nexushr.com' WHERE email = 'hrdirector@nexushr.com';
-UPDATE employees SET email = 'joseph.thomas2@nexushr.com' WHERE email = 'hrdirector@nexushr.com';
+UPDATE users SET email = 'old_hrdirector_' || id || '@nexushr.com' WHERE email = 'hrdirector@nexushr.com';
+UPDATE employees SET email = 'old_hrdirector_' || id || '@nexushr.com' WHERE email = 'hrdirector@nexushr.com';
 
-UPDATE users SET email = 'patricia.anderson3@nexushr.com' WHERE email = 'financemanager@nexushr.com';
-UPDATE employees SET email = 'patricia.anderson3@nexushr.com' WHERE email = 'financemanager@nexushr.com';
+UPDATE users SET email = 'old_financemanager_' || id || '@nexushr.com' WHERE email = 'financemanager@nexushr.com';
+UPDATE employees SET email = 'old_financemanager_' || id || '@nexushr.com' WHERE email = 'financemanager@nexushr.com';
 
-UPDATE users SET email = 'patricia.perez4@nexushr.com' WHERE email = 'deptmanager@nexushr.com';
-UPDATE employees SET email = 'patricia.perez4@nexushr.com' WHERE email = 'deptmanager@nexushr.com';
+UPDATE users SET email = 'old_deptmanager_' || id || '@nexushr.com' WHERE email = 'deptmanager@nexushr.com';
+UPDATE employees SET email = 'old_deptmanager_' || id || '@nexushr.com' WHERE email = 'deptmanager@nexushr.com';
 
-UPDATE users SET email = 'michael.taylor5@nexushr.com' WHERE email = 'teamlead@nexushr.com';
-UPDATE employees SET email = 'michael.taylor5@nexushr.com' WHERE email = 'teamlead@nexushr.com';
+UPDATE users SET email = 'old_teamlead_' || id || '@nexushr.com' WHERE email = 'teamlead@nexushr.com';
+UPDATE employees SET email = 'old_teamlead_' || id || '@nexushr.com' WHERE email = 'teamlead@nexushr.com';
 
-UPDATE users SET email = 'linda.moore6@nexushr.com' WHERE email = 'employee1@nexushr.com';
-UPDATE employees SET email = 'linda.moore6@nexushr.com' WHERE email = 'employee1@nexushr.com';
+UPDATE users SET email = 'old_employee1_' || id || '@nexushr.com' WHERE email = 'employee1@nexushr.com';
+UPDATE employees SET email = 'old_employee1_' || id || '@nexushr.com' WHERE email = 'employee1@nexushr.com';
 
-UPDATE users SET email = 'robert.martinez7@nexushr.com' WHERE email = 'employee2@nexushr.com';
-UPDATE employees SET email = 'robert.martinez7@nexushr.com' WHERE email = 'employee2@nexushr.com';
+UPDATE users SET email = 'old_employee2_' || id || '@nexushr.com' WHERE email = 'employee2@nexushr.com';
+UPDATE employees SET email = 'old_employee2_' || id || '@nexushr.com' WHERE email = 'employee2@nexushr.com';
 
-UPDATE users SET email = 'john.brown8@nexushr.com' WHERE email = 'hrexecutive@nexushr.com';
-UPDATE employees SET email = 'john.brown8@nexushr.com' WHERE email = 'hrexecutive@nexushr.com';
+UPDATE users SET email = 'old_hrexecutive_' || id || '@nexushr.com' WHERE email = 'hrexecutive@nexushr.com';
+UPDATE employees SET email = 'old_hrexecutive_' || id || '@nexushr.com' WHERE email = 'hrexecutive@nexushr.com';
 
-UPDATE users SET email = 'mary.miller9@nexushr.com' WHERE email = 'auditor@nexushr.com';
-UPDATE employees SET email = 'mary.miller9@nexushr.com' WHERE email = 'auditor@nexushr.com';
+UPDATE users SET email = 'old_auditor_' || id || '@nexushr.com' WHERE email = 'auditor@nexushr.com';
+UPDATE employees SET email = 'old_auditor_' || id || '@nexushr.com' WHERE email = 'auditor@nexushr.com';
 
 -- 2. Insert the new Demo users into `users` table
 INSERT INTO users (id, first_name, last_name, email, password, active, email_verified, created_at, updated_at) VALUES 
