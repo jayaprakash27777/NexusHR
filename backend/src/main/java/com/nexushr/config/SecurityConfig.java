@@ -67,6 +67,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // WebSocket
                         .requestMatchers("/ws/**").permitAll()
+                        // Static Uploads
+                        .requestMatchers("/uploads/**").permitAll()
                         // Health check
                         .requestMatchers("/actuator/health").permitAll()
                         // All other endpoints require authentication

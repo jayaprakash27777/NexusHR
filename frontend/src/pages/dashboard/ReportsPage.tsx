@@ -69,11 +69,10 @@ export default function ReportsPage() {
   });
 
   const handleDownload = (fileUrl: string) => {
-    // Determine the base URL (VITE_API_URL handles http vs https, etc.)
     const baseUrl = import.meta.env.VITE_API_URL || 'https://nexushr-fxe4.onrender.com/api';
-    // Remove '/api' from baseUrl to get the static root
-    const rootUrl = baseUrl.replace('/api', '');
-    window.open(`${rootUrl}${fileUrl}`, '_blank');
+    // fileUrl is e.g. "/uploads/reports/xyz.pdf"
+    // Since the backend servlet context-path is "/api", the static resources are served under "/api"
+    window.open(`${baseUrl}${fileUrl}`, '_blank');
   };
 
   return (
