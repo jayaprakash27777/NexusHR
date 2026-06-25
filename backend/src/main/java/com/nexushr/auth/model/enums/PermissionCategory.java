@@ -16,5 +16,9 @@ public enum PermissionCategory {
     SETTINGS,
     SECURITY,
     INTEGRATIONS,
-    RECRUITMENT
+    RECRUITMENT,
+    DASHBOARD,
+    AI_INSIGHTS,
+    KNOWLEDGE,
+    PLANNING
 }
